@@ -24,6 +24,8 @@
     <None Include="basic.vert.glsl" />
     <None Include="basic.frag.glsl" />
     <None Include="imgui.ini" />
+    <None Include="texture.vert.glsl" />
+    <None Include="texture.frag.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="VertexBuffer.h">
@@ -103,5 +105,37 @@
     <ClCompile Include="BaseObject.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Planets\planet00.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Planets\planet01.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Planets\planet02.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Planets\planet03.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Planets\planet04.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Planets\planet05.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Planets\planet06.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Planets\planet07.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Planets\planet08.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Planets\planet09.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

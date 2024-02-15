@@ -30,6 +30,7 @@ bool TextFile::ReadIn() {
 		}
 	}
 	fin.close();
+	return true;
 }
 
 void TextFile::Trim(std::string& str) {

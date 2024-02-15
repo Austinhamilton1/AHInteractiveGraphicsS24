@@ -47,6 +47,67 @@ static glm::mat4 CreateViewMatrix(const glm::vec3& position, const glm::vec3& di
 	return glm::inverse(view);
 }
 
+static void SetUpTexturedScene(std::shared_ptr<Shader>& textureShader, std::shared_ptr<Scene>& textureScene) {
+	TextFile vertSource("texture.vert.glsl");
+	TextFile fragSource("texture.frag.glsl");
+	if (!vertSource.ReadIn() || !fragSource.ReadIn()) return;
+	textureShader = std::make_shared<Shader>(vertSource.GetData(), fragSource.GetData());
+	textureShader->AddUniform("projection");
+	textureShader->AddUniform("world");
+	textureShader->AddUniform("view");
+	textureShader->AddUniform("texUnit");
+	std::shared_ptr<Texture> tex = std::make_shared<Texture>();
+	tex->SetWidth(4);
+	tex->SetHeight(4);
+	//tex->SetWrapS(GL_CLAMP_TO_EDGE); tex->SetWrapT(GL_CLAMP_TO_EDGE);
+	tex->SetMagFilter(GL_LINEAR);
+	unsigned char data[64] = {
+		255, 255, 255, 255, 0, 0, 255, 255, 0, 0, 255, 255, 255, 255, 255, 255,
+		0, 255, 0, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 255, 0, 255,
+		0, 255, 0, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 255, 0, 255,
+		255, 255, 255, 255, 255, 0, 0, 255, 255, 0, 0, 255, 255, 255, 255, 255
+	};
+	tex->SetTextureData(64, data);
+	textureScene = std::make_shared<Scene>();
+	std::shared_ptr<GraphicsObject> object = std::make_shared<GraphicsObject>();
+	std::shared_ptr<VertexBuffer> buffer = std::make_shared<VertexBuffer>(8);
+	buffer->AddVertexData(8, -50.0f, 50.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 3.0f);
+	buffer->AddVertexData(8, -50.0f, -50.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f);
+	buffer->AddVertexData(8, 50.0f, -50.0f, 0.0f, 1.0f, 1.0f, 1.0f, 3.0f, 0.0f);
+	buffer->AddVertexData(8, -50.0f, 50.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 3.0f);
+	buffer->AddVertexData(8, 50.0f, -50.0f, 0.0f, 1.0f, 1.0f, 1.0f, 3.0f, 0.0f);
+	buffer->AddVertexData(8, 50.0f, 50.0f, 0.0f, 1.0f, 1.0f, 1.0f, 3.0f, 3.0f);
+	buffer->AddVertexAttribute("position", 0, 3, 0);
+	buffer->AddVertexAttribute("vertexColor", 1, 3, 3);
+	buffer->AddVertexAttribute("texCoord", 2, 2, 6);
+	buffer->SetTexture(tex);
+	buffer->SelectTexture();
+	object->SetVertexBuffer(buffer);
+	object->SetPosition(glm::vec3(-75.0f, -30.0f, 0.0f));
+	textureScene->AddObject(object);
+
+	std::shared_ptr<Texture> tex2 = std::make_shared<Texture>();
+	tex2->LoadTextureDataFromFile("Planets/planet00.png");
+	std::shared_ptr<GraphicsObject> object2 = std::make_shared<GraphicsObject>();
+	std::shared_ptr<VertexBuffer> buffer2 = std::make_shared<VertexBuffer>(8);
+	buffer2->AddVertexData(8, -50.0f, 50.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f);
+	buffer2->AddVertexData(8, -50.0f, -50.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f);
+	buffer2->AddVertexData(8, 50.0f, -50.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f);
+	buffer2->AddVertexData(8, -50.0f, 50.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f);
+	buffer2->AddVertexData(8, 50.0f, -50.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f);
+	buffer2->AddVertexData(8, 50.0f, 50.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+	buffer2->AddVertexAttribute("position", 0, 3, 0);
+	buffer2->AddVertexAttribute("vertexColor", 1, 3, 3);
+	buffer2->AddVertexAttribute("texCoord", 2, 2, 6);
+	buffer2->SetTexture(tex2);
+	buffer2->SelectTexture();
+	object2->SetVertexBuffer(buffer2);
+	object2->SetPosition(glm::vec3(50, 50, 0));
+	textureScene->AddObject(object2);
+
+
+}
+
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	_In_opt_ HINSTANCE hPrevInstance,
 	_In_ LPWSTR    lpCmdLine,
@@ -74,6 +135,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	glfwSetFramebufferSizeCallback(window, OnWindowSizeChanged);
 	//glfwMaximizeWindow(window);
 
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	TextFile vertexShaderSource("basic.vert.glsl");
 	if (!vertexShaderSource.ReadIn()) return -1;
 	TextFile fragmentShaderSource("basic.frag.glsl");
@@ -90,10 +154,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	glfwGetWindowSize(window, &width, &height);
 	float aspectRatio = width / (height * 1.0f);
 
-	float left = -50.0f;
-	float right = 50.0f;
-	float bottom = -50.0f;
-	float top = 50.0f;
+	float left = -100.0f;
+	float right = 100.0f;
+	float bottom = -100.0f;
+	float top = 100.0f;
 	left *= aspectRatio;
 	right *= aspectRatio;
 	glm::mat4 projection = glm::ortho(left, right, bottom, top, -1.0f, 1.0f);
@@ -138,6 +202,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	Renderer renderer(shader);
 
 	renderer.StaticAllocate(scene->GetObjects());
+	
+	std::shared_ptr<Shader> textureShader;
+	std::shared_ptr<Scene> textureScene;
+	SetUpTexturedScene(textureShader, textureScene);
+	Renderer textureRenderer(textureShader);
+	textureRenderer.StaticAllocate(textureScene->GetObjects());
 
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -151,6 +221,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 	glUseProgram(shaderProgram);
 	shader->SendMat4Uniform("projection", projection);
+	glUseProgram(textureShader->GetShaderProgram());
+	textureShader->SendMat4Uniform("projection", projection);
 
 	float angle = 0, childAngle = 0;
 	float cameraX = -10, cameraY = 0;
@@ -179,6 +251,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		}
 
 		renderer.RenderScene(scene, view);
+		textureRenderer.RenderScene(textureScene, view);
 
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();

@@ -132,3 +132,8 @@ void Shader::SendMat4Uniform(const std::string& uniformName, const glm::mat4& ma
 	glUseProgram(shaderProgram);
 	glUniformMatrix4fv(uniformMap[uniformName], 1, GL_FALSE, glm::value_ptr(mat));
 }
+
+void Shader::SendIntUniform(const std::string& uniformName, int value) {
+	glUseProgram(shaderProgram);
+	glUniform1i(uniformMap[uniformName], value);
+}

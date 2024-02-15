@@ -59,19 +59,19 @@
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\Labs\InteractiveGraphics.props" />
+    <Import Project="..\InteractiveGraphics.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\Labs\InteractiveGraphics.props" />
+    <Import Project="..\InteractiveGraphics.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\Labs\InteractiveGraphics.props" />
+    <Import Project="..\InteractiveGraphics.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\Labs\InteractiveGraphics.props" />
+    <Import Project="..\InteractiveGraphics.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -138,6 +138,8 @@
     <None Include="basic.frag.glsl" />
     <None Include="basic.vert.glsl" />
     <None Include="imgui.ini" />
+    <None Include="texture.frag.glsl" />
+    <None Include="texture.vert.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BaseObject.h" />
@@ -167,6 +169,18 @@
     <ClCompile Include="TextFile.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="VertexBuffer.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Planets\planet00.png" />
+    <Image Include="Planets\planet01.png" />
+    <Image Include="Planets\planet02.png" />
+    <Image Include="Planets\planet03.png" />
+    <Image Include="Planets\planet04.png" />
+    <Image Include="Planets\planet05.png" />
+    <Image Include="Planets\planet06.png" />
+    <Image Include="Planets\planet07.png" />
+    <Image Include="Planets\planet08.png" />
+    <Image Include="Planets\planet09.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

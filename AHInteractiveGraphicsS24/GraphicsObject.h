@@ -22,6 +22,9 @@ public:
 	inline const std::shared_ptr<VertexBuffer>& GetVertexBuffer() const {
 		return buffer;
 	}
+	inline void SetReferenceFrame(const glm::mat4& referenceFrame) {
+		this->referenceFrame = referenceFrame;
+	}
 	void StaticAllocateVertexBuffer();
 
 	void AddChild(std::shared_ptr<GraphicsObject> child);

@@ -4,6 +4,8 @@
 Renderer::Renderer(std::shared_ptr<Shader> shader) {
 	this->shader = shader;
 	glGenVertexArrays(1, &vaoId);
+	view = glm::mat4(1.0f);
+	projection = glm::mat4(1.0f);
 }
 
 void Renderer::StaticAllocate(const std::vector<std::shared_ptr<GraphicsObject>>& objects) {
@@ -34,8 +36,9 @@ void Renderer::RenderObject(const GraphicsObject& object)
 	}
 }
 
-void Renderer::RenderScene(std::shared_ptr<Scene> scene, const glm::mat4& view) {
+void Renderer::RenderScene() {
 	glUseProgram(shader->GetShaderProgram());
+	shader->SendMat4Uniform("projection", projection);
 	glBindVertexArray(vaoId);
 	shader->SendMat4Uniform("view", view);
 	auto& objects = scene->GetObjects();

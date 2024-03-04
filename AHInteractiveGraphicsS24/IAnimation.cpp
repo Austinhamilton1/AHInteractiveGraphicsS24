@@ -1,0 +1,5 @@
+#include "IAnimation.h"
+
+void IAnimation::SetObject(std::shared_ptr<GraphicsObject> object) {
+	this->object = object;
+}

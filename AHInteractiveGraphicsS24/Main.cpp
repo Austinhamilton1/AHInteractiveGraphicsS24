@@ -128,7 +128,7 @@ static void SetUpTexturedScene(std::shared_ptr<Shader>& textureShader, std::shar
 	textureScene->AddObject(object2);
 }
 
-static void SetUp3DScene1(std::shared_ptr<Shader>& shader, std::shared_ptr<Scene>& scene) {
+static void SetUp3DScene1(GraphicsEnvironment& env, std::shared_ptr<Shader>& shader, std::shared_ptr<Scene>& scene) {
 	TextFile vertSource("texture.vert.glsl");
 	TextFile fragSource("texture.frag.glsl");
 	if (!vertSource.ReadIn() || !fragSource.ReadIn()) return;
@@ -152,6 +152,7 @@ static void SetUp3DScene1(std::shared_ptr<Shader>& shader, std::shared_ptr<Scene
 	tex->SetTextureData(64, textureData);
 	scene = std::make_shared<Scene>();
 	std::shared_ptr<GraphicsObject> object = std::make_shared<GraphicsObject>();
+	env.AddObject("cuboid", object);
 	std::shared_ptr<VertexBuffer> buffer = Generate::Cuboid(10.0f, 5.0f, 5.0f);
 
 	
@@ -164,6 +165,7 @@ static void SetUp3DScene1(std::shared_ptr<Shader>& shader, std::shared_ptr<Scene
 	std::shared_ptr<Texture> crateTexture = std::make_shared<Texture>();
 	crateTexture->LoadTextureDataFromFile("Crates/crate_texture.png");
 	std::shared_ptr<GraphicsObject> crate = std::make_shared<GraphicsObject>();
+	env.AddObject("crate", crate);
 	std::shared_ptr<VertexBuffer> buffer2 = Generate::Cuboid(10.0f, 5.0f, 5.0f);
 	
 	buffer2->SetTexture(crateTexture);
@@ -175,6 +177,7 @@ static void SetUp3DScene1(std::shared_ptr<Shader>& shader, std::shared_ptr<Scene
 	std::shared_ptr<Texture> floorTexture = std::make_shared<Texture>();
 	floorTexture->LoadTextureDataFromFile("Floors/floor.png");
 	std::shared_ptr<GraphicsObject> floor = std::make_shared<GraphicsObject>();
+	env.AddObject("floor", floor);
 	std::shared_ptr<VertexBuffer> buffer3 = Generate::XZPlane(20, 20);
 
 	buffer3->SetTexture(floorTexture);
@@ -204,7 +207,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 	std::shared_ptr<Shader> shader;
 	std::shared_ptr<Scene> scene;
-	SetUp3DScene1(shader, scene);
+	SetUp3DScene1(glfw, shader, scene);
 
 	glfw.CreateRenderer("3d_scene", shader);
 	glfw.GetRenderer("3d_scene")->SetScene(scene);

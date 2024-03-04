@@ -3,6 +3,16 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 #include <glm/gtc/matrix_transform.hpp>
+#include "Timer.h"
+#include "RotateAnimation.h"
+
+GraphicsEnvironment* GraphicsEnvironment::self;
+
+GraphicsEnvironment::GraphicsEnvironment() {
+	manager = std::make_shared<ObjectManager>();
+	camera = std::make_shared<Camera>();
+	self = this;
+}
 
 GraphicsEnvironment::~GraphicsEnvironment() {
 	glfwTerminate();
@@ -54,6 +64,7 @@ void GraphicsEnvironment::SetupGraphics() {
 	glEnable(GL_MULTISAMPLE);
 
 	glfwSetFramebufferSizeCallback(window, GraphicsEnvironment::OnWindowSizeChanged);
+	glfwSetCursorPosCallback(window, GraphicsEnvironment::OnMouseMove);
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGui::StyleColorsDark();
@@ -83,10 +94,46 @@ void GraphicsEnvironment::Render() {
 	}
 }
 
-void GraphicsEnvironment::ProcessInput(GLFWwindow* window) {
+void GraphicsEnvironment::ProcessInput(double elapsedSeconds) {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
 		glfwSetWindowShouldClose(window, true);
+		return;
 	}
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+		camera->MoveForward(elapsedSeconds);
+		return;
+	}
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+		camera->MoveBackwards(elapsedSeconds);
+		return;
+	}
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+		camera->MoveLeft(elapsedSeconds);
+		return;
+	}
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+		camera->MoveRight(elapsedSeconds);
+		return;
+	}
+	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+		camera->MoveUp(elapsedSeconds);
+		return;
+	}
+	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+		camera->MoveDown(elapsedSeconds);
+		return;
+	}
+}
+
+void GraphicsEnvironment::OnMouseMove(GLFWwindow* window, double mouseX, double mouseY) {
+	self->mouse.x = mouseX;
+	self->mouse.y = mouseY;
+
+	float xPercent = static_cast<float>(self->mouse.x / self->mouse.windowWidth);
+	float yPercent = static_cast<float>(self->mouse.y / self->mouse.windowHeight);
+
+	self->mouse.spherical.theta = 90.0f - (xPercent * 180); // left/right
+	self->mouse.spherical.phi = 180.0f - (yPercent * 180); // up/down
 }
 
 const glm::mat4& GraphicsEnvironment::CreateViewMatrix(const glm::vec3& position, const glm::vec3& direction, const glm::vec3& up) {
@@ -125,7 +172,7 @@ void GraphicsEnvironment::Run2D() {
 
 	ImGuiIO& io = ImGui::GetIO();
 	while (!glfwWindowShouldClose(window)) {
-		GraphicsEnvironment::ProcessInput(window);
+		GraphicsEnvironment::ProcessInput(0.0);
 
 		glClearColor(clearColor.r, clearColor.g, clearColor.b, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
@@ -202,9 +249,8 @@ void GraphicsEnvironment::Run3D() {
 	float farPlane = 50.0f;
 	float fieldOfView = 60;
 
-	glm::vec3 cameraPosition(15.0f, 15.0f, 20.0f);
+	camera->SetPosition(glm::vec3(0.0f, 5.0f, 20.0f));
 	glm::vec3 cameraTarget(0.0f, 0.0f, 0.0f);
-	glm::vec3 cameraUp(0.0f, 1.0f, 0.0f);
 
 	glm::mat4 view;
 	glm::mat4 projection;
@@ -212,23 +258,33 @@ void GraphicsEnvironment::Run3D() {
 	glm::vec3 clearColor = { 0.2f, 0.3f, 0.3f };
 
 	ImGuiIO& io = ImGui::GetIO();
+	Timer timer;
+	double elapsedSeconds;
+	std::shared_ptr<RotateAnimation> rotateAnimation =
+		std::make_shared<RotateAnimation>();
+	rotateAnimation->SetObject(manager->Get("crate"));
+	manager->Get("crate")->SetAnimation(rotateAnimation);
 	while (!glfwWindowShouldClose(window)) {
-		ProcessInput(window);
+		elapsedSeconds = timer.GetElapsedTimeInSeconds();
+		ProcessInput(elapsedSeconds);
 		glfwGetWindowSize(window, &width, &height);
+		mouse.windowHeight = height;
+		mouse.windowWidth = width;
 
 		glClearColor(clearColor.r, clearColor.g, clearColor.b, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-		for (auto& it : GetRenderer("3d_scene")->GetScene()->GetObjects()) {
+		/*for (auto& it : GetRenderer("3d_scene")->GetScene()->GetObjects()) {
 			glm::vec4 position = it->GetReferenceFrame()[3];
 			referenceFrame = glm::rotate(glm::mat4(1.0f), glm::radians(cubeYAngle), glm::vec3(0.0f, 1.0f, 0.0f));
 			referenceFrame = glm::rotate(referenceFrame, glm::radians(cubeXAngle), glm::vec3(1.0f, 0.0f, 0.0f));
 			referenceFrame = glm::rotate(referenceFrame, glm::radians(cubeZAngle), glm::vec3(0.0f, 0.0f, 1.0f));
 			it->SetReferenceFrame(referenceFrame);
 			it->SetPosition(position);
-		}
+		}*/
 
-		view = glm::lookAt(cameraPosition, cameraTarget, cameraUp);
+		camera->SetLookFrame(mouse.spherical.ToMat4());
+		view = camera->LookForward();
 		GetRenderer("3d_scene")->SetView(view);
 
 		if (width >= height) {
@@ -241,6 +297,7 @@ void GraphicsEnvironment::Run3D() {
 			glm::radians(fieldOfView), aspectRatio, nearPlane, farPlane);
 		GetRenderer("3d_scene")->SetProjection(projection);
 
+		manager->Update(elapsedSeconds);
 		Render();
 
 		ImGui_ImplOpenGL3_NewFrame();
@@ -254,9 +311,6 @@ void GraphicsEnvironment::Run3D() {
 		ImGui::SliderFloat("X Angle", &cubeXAngle, 0, 360);
 		ImGui::SliderFloat("Y Angle", &cubeYAngle, 0, 360);
 		ImGui::SliderFloat("Z Angle", &cubeZAngle, 0, 360);
-		ImGui::SliderFloat("Camera X", &cameraPosition.x, left, right);
-		ImGui::SliderFloat("Camera Y", &cameraPosition.y, bottom, top);
-		ImGui::SliderFloat("Camera Z", &cameraPosition.z, 20, 50);
 		ImGui::End();
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

@@ -16,9 +16,14 @@ void Renderer::StaticAllocate(const std::vector<std::shared_ptr<GraphicsObject>>
 	glBindVertexArray(0);
 }
 
-void Renderer::RenderObject(const GraphicsObject& object)
+void Renderer::RenderObject(GraphicsObject& object)
 {
 	shader->SendMat4Uniform("world", object.GetReferenceFrame());
+
+	Material material = object.GetMaterial();
+	shader->SendFloatUniform("materialAmbientIntensity", material.ambientIntensity);
+	shader->SendFloatUniform("materialSpecularIntensity", material.specularIntensity);
+	shader->SendFloatUniform("materialShininess", material.shininess);
 
 	auto& buffer = object.GetVertexBuffer();
 	buffer->Select();
@@ -36,9 +41,19 @@ void Renderer::RenderObject(const GraphicsObject& object)
 	}
 }
 
-void Renderer::RenderScene() {
+void Renderer::RenderScene(Camera& camera) {
 	glUseProgram(shader->GetShaderProgram());
 	shader->SendMat4Uniform("projection", projection);
+	Light globalLight = scene->GetGlobalLight();
+	Light localLight = scene->GetLocalLight();
+	shader->SendVec3Uniform("globalLightPosition", globalLight.position);
+	shader->SendVec3Uniform("globalLightColor", globalLight.color);
+	shader->SendFloatUniform("globalLightIntensity", globalLight.intensity);
+	shader->SendVec3Uniform("localLightPosition", localLight.position);
+	shader->SendVec3Uniform("localLightColor", localLight.color);
+	shader->SendFloatUniform("localLightIntensity", localLight.intensity);
+	shader->SendFloatUniform("localLightAttenuationCoef", localLight.attenuationCoef);
+	shader->SendVec3Uniform("viewPosition", camera.GetPosition());
 	glBindVertexArray(vaoId);
 	shader->SendMat4Uniform("view", view);
 	auto& objects = scene->GetObjects();

@@ -187,6 +187,174 @@ static void SetUp3DScene1(GraphicsEnvironment& env, std::shared_ptr<Shader>& sha
 	scene->AddObject(floor);
 }
 
+void SetUp3DScene2(GraphicsEnvironment& env, std::shared_ptr<Shader>& shader, std::shared_ptr<Scene>& scene) {
+	TextFile vertSource("lighting.vert.glsl");
+	TextFile fragSource("lighting.frag.glsl");
+	if (!vertSource.ReadIn() || !fragSource.ReadIn()) return;
+	shader = std::make_shared<Shader>(vertSource.GetData(), fragSource.GetData());
+	shader->AddUniform("projection");
+	shader->AddUniform("world");
+	shader->AddUniform("view");
+	shader->AddUniform("texUnit");
+	shader->AddUniform("materialAmbientIntensity");
+	shader->AddUniform("materialSpecularIntensity");
+	shader->AddUniform("materialShininess");
+	shader->AddUniform("globalLightPosition");
+	shader->AddUniform("globalLightColor");
+	shader->AddUniform("globalLightIntensity");
+	shader->AddUniform("localLightPosition");
+	shader->AddUniform("localLightColor");
+	shader->AddUniform("localLightIntensity");
+	shader->AddUniform("locoalLightAttenuationCoef");
+	shader->AddUniform("viewPosition");
+	std::shared_ptr<Texture> tex = std::make_shared<Texture>();
+	tex->SetWidth(4);
+	tex->SetHeight(4);
+	//tex->SetWrapS(GL_CLAMP_TO_EDGE); tex->SetWrapT(GL_CLAMP_TO_EDGE);
+	//tex->SetMagFilter(GL_LINEAR);
+	// Create the texture data
+	unsigned char textureData[64] = {
+		0, 0, 0, 255, 0, 0, 255, 255, 0, 0, 255, 255, 0, 0, 0, 255,
+		0, 255, 0, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 255, 0, 255,
+		0, 255, 0, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 255, 0, 255,
+		0, 0, 0, 255, 255, 0, 0, 255, 255, 0, 0, 255, 0, 0, 0, 255
+	};
+	tex->SetTextureData(64, textureData);
+	scene = std::make_shared<Scene>();
+	std::shared_ptr<GraphicsObject> object = std::make_shared<GraphicsObject>();
+	env.AddObject("cuboid", object);
+	std::shared_ptr<VertexBuffer> buffer = Generate::NormalCuboid(10.0f, 5.0f, 5.0f);
+
+
+	buffer->SetTexture(tex);
+	buffer->SelectTexture();
+	object->SetVertexBuffer(buffer);
+	object->SetPosition(glm::vec3(5, 5, 0));
+	scene->AddObject(object);
+
+	std::shared_ptr<Texture> crateTexture = std::make_shared<Texture>();
+	crateTexture->LoadTextureDataFromFile("Crates/crate_texture.png");
+	std::shared_ptr<GraphicsObject> crate = std::make_shared<GraphicsObject>();
+	env.AddObject("crate", crate);
+	std::shared_ptr<VertexBuffer> buffer2 = Generate::NormalCuboid(10.0f, 5.0f, 5.0f);
+
+	buffer2->SetTexture(crateTexture);
+	buffer->SelectTexture();
+	crate->SetVertexBuffer(buffer2);
+	crate->SetPosition(glm::vec3(-10, 5, 0));
+	scene->AddObject(crate);
+
+	std::shared_ptr<Texture> floorTexture = std::make_shared<Texture>();
+	floorTexture->LoadTextureDataFromFile("Floors/floor.png");
+	std::shared_ptr<GraphicsObject> floor = std::make_shared<GraphicsObject>();
+	env.AddObject("floor", floor);
+	std::shared_ptr<VertexBuffer> buffer3 = Generate::NormalXZPlane(20, 20);
+
+	buffer3->SetTexture(floorTexture);
+	buffer3->SelectTexture();
+	floor->SetVertexBuffer(buffer3);
+	floor->SetPosition(glm::vec3(0, 0, 0));
+	scene->AddObject(floor);
+}
+
+static void SetUpLightbulb(GraphicsEnvironment& env, std::shared_ptr<Shader>& shader, std::shared_ptr<Scene>& scene) {
+	TextFile vertSource("texture.vert.glsl");
+	TextFile fragSource("texture.frag.glsl");
+	if (!vertSource.ReadIn() || !fragSource.ReadIn()) return;
+	shader = std::make_shared<Shader>(vertSource.GetData(), fragSource.GetData());
+	shader->AddUniform("projection");
+	shader->AddUniform("world");
+	shader->AddUniform("view");
+	shader->AddUniform("texUnit");
+	std::shared_ptr<Texture> tex = std::make_shared<Texture>();
+	tex->SetWidth(4);
+	tex->SetHeight(4);
+	//tex->SetWrapS(GL_CLAMP_TO_EDGE); tex->SetWrapT(GL_CLAMP_TO_EDGE);
+	//tex->SetMagFilter(GL_LINEAR);
+	// Create the texture data
+	tex->LoadTextureDataFromFile("Lightbulb/lightbulb.png");
+	scene = std::make_shared<Scene>();
+	std::shared_ptr<GraphicsObject> lightbulb = std::make_shared<GraphicsObject>();
+	env.AddObject("lightbulb", lightbulb);
+	std::shared_ptr<VertexBuffer> buffer = Generate::XYPlane(2.0f, 2.0f);
+
+
+	buffer->SetTexture(tex);
+	buffer->SelectTexture();
+	lightbulb->SetVertexBuffer(buffer);
+	lightbulb->SetPosition(glm::vec3(0, 5, 8));
+	scene->AddObject(lightbulb);
+}
+
+void SetUp3DScene3(GraphicsEnvironment& env, std::shared_ptr<Shader>& shader, std::shared_ptr<Scene>& scene) {
+	TextFile vertSource("lighting.vert.glsl");
+	TextFile fragSource("lighting.frag.glsl");
+	if (!vertSource.ReadIn() || !fragSource.ReadIn()) return;
+	shader = std::make_shared<Shader>(vertSource.GetData(), fragSource.GetData());
+	shader->AddUniform("projection");
+	shader->AddUniform("world");
+	shader->AddUniform("view");
+	shader->AddUniform("texUnit");
+	shader->AddUniform("materialAmbientIntensity");
+	shader->AddUniform("materialSpecularIntensity");
+	shader->AddUniform("materialShininess");
+	shader->AddUniform("globalLightPosition");
+	shader->AddUniform("globalLightColor");
+	shader->AddUniform("globalLightIntensity");
+	shader->AddUniform("localLightPosition");
+	shader->AddUniform("localLightColor");
+	shader->AddUniform("localLightIntensity");
+	shader->AddUniform("locoalLightAttenuationCoef");
+	shader->AddUniform("viewPosition");
+	std::shared_ptr<Texture> tex = std::make_shared<Texture>();
+	tex->SetWidth(4);
+	tex->SetHeight(4);
+	//tex->SetWrapS(GL_CLAMP_TO_EDGE); tex->SetWrapT(GL_CLAMP_TO_EDGE);
+	//tex->SetMagFilter(GL_LINEAR);
+	// Create the texture data
+	unsigned char textureData[64] = {
+		0, 0, 0, 255, 0, 0, 255, 255, 0, 0, 255, 255, 0, 0, 0, 255,
+		0, 255, 0, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 255, 0, 255,
+		0, 255, 0, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 255, 0, 255,
+		0, 0, 0, 255, 255, 0, 0, 255, 255, 0, 0, 255, 0, 0, 0, 255
+	};
+	tex->SetTextureData(64, textureData);
+	scene = std::make_shared<Scene>();
+	std::shared_ptr<GraphicsObject> object = std::make_shared<GraphicsObject>();
+	env.AddObject("cuboid", object);
+	std::shared_ptr<VertexBuffer> buffer = Generate::NormalCuboid(10.0f, 5.0f, 5.0f);
+
+	buffer->SetTexture(tex);
+	buffer->SelectTexture();
+	object->SetVertexBuffer(buffer);
+	object->SetPosition(glm::vec3(5, 5, 0));
+	scene->AddObject(object);
+
+	std::shared_ptr<Texture> crateTexture = std::make_shared<Texture>();
+	crateTexture->LoadTextureDataFromFile("Crates/crate_texture.png");
+	std::shared_ptr<GraphicsObject> crate = std::make_shared<GraphicsObject>();
+	env.AddObject("crate", crate);
+	std::shared_ptr<VertexBuffer> buffer2 = Generate::NormalCuboid(10.0f, 5.0f, 5.0f);
+
+	buffer2->SetTexture(crateTexture);
+	buffer->SelectTexture();
+	crate->SetVertexBuffer(buffer2);
+	crate->SetPosition(glm::vec3(-10, 5, 0));
+	scene->AddObject(crate);
+
+	std::shared_ptr<Texture> floorTexture = std::make_shared<Texture>();
+	floorTexture->LoadTextureDataFromFile("Floors/floor.png");
+	std::shared_ptr<GraphicsObject> floor = std::make_shared<GraphicsObject>();
+	env.AddObject("floor", floor);
+	std::shared_ptr<VertexBuffer> buffer3 = Generate::NormalXZPlane(20, 20);
+
+	buffer3->SetTexture(floorTexture);
+	buffer3->SelectTexture();
+	floor->SetVertexBuffer(buffer3);
+	floor->SetPosition(glm::vec3(0, 0, 0));
+	scene->AddObject(floor);
+}
+
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	_In_opt_ HINSTANCE hPrevInstance,
 	_In_ LPWSTR    lpCmdLine,
@@ -207,10 +375,17 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 	std::shared_ptr<Shader> shader;
 	std::shared_ptr<Scene> scene;
-	SetUp3DScene1(glfw, shader, scene);
+	SetUp3DScene2(glfw, shader, scene);
+
+	std::shared_ptr<Shader> lightbulbShader;
+	std::shared_ptr<Scene> lightbulbScene;
+	SetUpLightbulb(glfw, lightbulbShader, lightbulbScene);
 
 	glfw.CreateRenderer("3d_scene", shader);
 	glfw.GetRenderer("3d_scene")->SetScene(scene);
+
+	glfw.CreateRenderer("lightbulb", lightbulbShader);
+	glfw.GetRenderer("lightbulb")->SetScene(lightbulbScene);
 
 	glfw.StaticAllocate();
 

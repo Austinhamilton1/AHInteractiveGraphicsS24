@@ -10,6 +10,7 @@ protected:
 
 public:
 	Camera();
+	glm::vec3& GetPosition();
 	void SetLookFrame(const glm::mat4& lookFrame) { this->lookFrame = lookFrame; }
 	void SetSpeed(float speed) { this->speed = speed; }
 	void SetPosition(const glm::vec3& pos);

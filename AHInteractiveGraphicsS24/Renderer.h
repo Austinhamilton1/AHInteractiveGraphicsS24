@@ -3,6 +3,7 @@
 #include "Shader.h"
 #include "GraphicsObject.h"
 #include "Scene.h"
+#include "Camera.h"
 #include <glm/glm.hpp>
 
 class Renderer : public BaseObject {
@@ -25,7 +26,7 @@ public:
 
 	void StaticAllocate(const std::vector<std::shared_ptr<GraphicsObject>>& objects);
 
-	void RenderObject(const GraphicsObject& object);
+	void RenderObject(GraphicsObject& object);
 
-	void RenderScene();
+	void RenderScene(Camera& camera);
 };

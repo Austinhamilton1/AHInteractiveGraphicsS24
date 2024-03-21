@@ -7,6 +7,15 @@ Camera::Camera() {
 	speed = 10.0f;
 }
 
+glm::vec3& Camera::GetPosition() {
+	float x, y, z;
+	x = referenceFrame[3].x;
+	y = referenceFrame[3].y;
+	z = referenceFrame[3].z;
+	glm::vec3 pos(x, y, z);
+	return pos;
+}
+
 void Camera::SetPosition(const glm::vec3& pos) {
 	glm::vec4 position = glm::vec4(pos, 1.0f);
 	referenceFrame[3] = position;

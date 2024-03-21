@@ -14,7 +14,7 @@ protected:
 	GLFWwindow* window;
 	std::unordered_map < std::string, std::shared_ptr<Renderer>> rendererMap;
 	std::shared_ptr<ObjectManager> manager;
-	std::shared_ptr<Camera> camera;
+	Camera camera;
 	static GraphicsEnvironment* self;
 	MouseParams mouse;
 
@@ -37,6 +37,7 @@ public:
 	void Render();
 	void ProcessInput(double elapsedSeconds);
 	static void OnMouseMove(GLFWwindow* window, double mouseX, double mouseY);
+	static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 	static const glm::mat4& CreateViewMatrix(const glm::vec3& position, const glm::vec3& direction, const glm::vec3& up);
 	void Run2D();
 	void Run3D();

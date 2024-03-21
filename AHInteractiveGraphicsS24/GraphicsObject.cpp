@@ -2,8 +2,7 @@
 #include "IAnimation.h"
 #include <glm/gtc/matrix_transform.hpp>
 
-GraphicsObject::GraphicsObject() : referenceFrame(1.0f), parent(nullptr)
-{
+GraphicsObject::GraphicsObject() : referenceFrame(1.0f), parent(nullptr), material({0.1f, 0.5f, 16.0f}) {
 }
 
 GraphicsObject::~GraphicsObject()
@@ -69,4 +68,15 @@ void GraphicsObject::Update(double elapsedSeconds) {
 	if (animation != nullptr) {
 		animation->Update(elapsedSeconds);
 	}
+}
+
+void GraphicsObject::PointAt(glm::vec3 target) {
+	glm::vec3 position = referenceFrame[3];
+	glm::vec3 zAxis = glm::normalize(target - position);
+	glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+	glm::vec3 xAxis = glm::normalize(glm::cross(up, zAxis));
+	glm::vec3 yAxis = glm::cross(zAxis, xAxis);
+	referenceFrame[0] = glm::vec4(xAxis, 0.0f);
+	referenceFrame[1] = glm::vec4(yAxis, 0.0f);
+	referenceFrame[2] = glm::vec4(zAxis, 0.0f);
 }

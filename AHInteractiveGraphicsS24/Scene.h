@@ -7,13 +7,17 @@ class Scene
 {
 private:
 	std::vector<std::shared_ptr<GraphicsObject>> objects;
+	Light globalLight;
+	Light localLight;
 
 public:
-	Scene() = default;
+	Scene();
 	~Scene() = default;
 	inline const std::vector<std::shared_ptr<GraphicsObject>>& GetObjects() const {
 		return objects;
 	}
 	void AddObject(std::shared_ptr<GraphicsObject> object);
+	Light& GetGlobalLight() { return globalLight; }
+	Light& GetLocalLight() { return localLight; }
 };
 

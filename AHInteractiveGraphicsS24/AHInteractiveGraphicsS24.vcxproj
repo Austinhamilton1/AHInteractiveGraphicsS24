@@ -138,6 +138,8 @@
     <None Include="basic.frag.glsl" />
     <None Include="basic.vert.glsl" />
     <None Include="imgui.ini" />
+    <None Include="lighting.frag.glsl" />
+    <None Include="lighting.vert.glsl" />
     <None Include="texture.frag.glsl" />
     <None Include="texture.vert.glsl" />
   </ItemGroup>

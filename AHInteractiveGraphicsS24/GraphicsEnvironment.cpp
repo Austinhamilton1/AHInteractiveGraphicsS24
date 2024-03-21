@@ -5,12 +5,13 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "Timer.h"
 #include "RotateAnimation.h"
+#include "GraphicsObject.h"
 
 GraphicsEnvironment* GraphicsEnvironment::self;
 
 GraphicsEnvironment::GraphicsEnvironment() {
 	manager = std::make_shared<ObjectManager>();
-	camera = std::make_shared<Camera>();
+	camera = Camera();
 	self = this;
 }
 
@@ -65,6 +66,7 @@ void GraphicsEnvironment::SetupGraphics() {
 
 	glfwSetFramebufferSizeCallback(window, GraphicsEnvironment::OnWindowSizeChanged);
 	glfwSetCursorPosCallback(window, GraphicsEnvironment::OnMouseMove);
+	glfwSetKeyCallback(window, GraphicsEnvironment::KeyCallback);
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGui::StyleColorsDark();
@@ -90,7 +92,7 @@ void GraphicsEnvironment::StaticAllocate() {
 
 void GraphicsEnvironment::Render() {
 	for (auto& it : rendererMap) {
-		it.second->RenderScene();
+		it.second->RenderScene(camera);
 	}
 }
 
@@ -100,27 +102,27 @@ void GraphicsEnvironment::ProcessInput(double elapsedSeconds) {
 		return;
 	}
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-		camera->MoveForward(elapsedSeconds);
+		camera.MoveForward(elapsedSeconds);
 		return;
 	}
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-		camera->MoveBackwards(elapsedSeconds);
+		camera.MoveBackwards(elapsedSeconds);
 		return;
 	}
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-		camera->MoveLeft(elapsedSeconds);
+	if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+		camera.MoveLeft(elapsedSeconds);
 		return;
 	}
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-		camera->MoveRight(elapsedSeconds);
+	if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+		camera.MoveRight(elapsedSeconds);
 		return;
 	}
 	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
-		camera->MoveUp(elapsedSeconds);
+		camera.MoveUp(elapsedSeconds);
 		return;
 	}
 	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-		camera->MoveDown(elapsedSeconds);
+		camera.MoveDown(elapsedSeconds);
 		return;
 	}
 }
@@ -134,6 +136,44 @@ void GraphicsEnvironment::OnMouseMove(GLFWwindow* window, double mouseX, double 
 
 	self->mouse.spherical.theta = 90.0f - (xPercent * 180); // left/right
 	self->mouse.spherical.phi = 180.0f - (yPercent * 180); // up/down
+}
+
+void GraphicsEnvironment::KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	if (key == GLFW_KEY_F2 && action == GLFW_PRESS) {
+		self->mouse.enabled = !self->mouse.enabled;
+		return;
+	}
+	if (key == GLFW_KEY_1 && action == GLFW_PRESS) {
+		self->mouse.enabled = false;
+		self->camera.SetPosition(glm::vec3(0, 5, 30));
+		glm::mat4 lookFrame(1.0f);
+		self->camera.SetLookFrame(lookFrame);
+		return;
+	}
+	if (key == GLFW_KEY_2 && action == GLFW_PRESS) {
+		self->mouse.enabled = false;
+		self->camera.SetPosition(glm::vec3(30, 5, 0));
+		glm::mat4 lookFrame(1.0f);
+		lookFrame = glm::rotate(lookFrame, glm::radians(90.0f), glm::vec3(0, 1, 0));
+		self->camera.SetLookFrame(lookFrame);
+		return;
+	}
+	if (key == GLFW_KEY_3 && action == GLFW_PRESS) {
+		self->mouse.enabled = false;
+		self->camera.SetPosition(glm::vec3(0, 5, -30));
+		glm::mat4 lookFrame(1.0f);
+		lookFrame = glm::rotate(lookFrame, glm::radians(180.0f), glm::vec3(0, 1, 0));
+		self->camera.SetLookFrame(lookFrame);
+		return;
+	}
+	if (key == GLFW_KEY_4 && action == GLFW_PRESS) {
+		self->mouse.enabled = false;
+		self->camera.SetPosition(glm::vec3(-30, 5, 0));
+		glm::mat4 lookFrame(1.0f);
+		lookFrame = glm::rotate(lookFrame, glm::radians(-90.0f), glm::vec3(0, 1, 0));
+		self->camera.SetLookFrame(lookFrame);
+		return;
+	}
 }
 
 const glm::mat4& GraphicsEnvironment::CreateViewMatrix(const glm::vec3& position, const glm::vec3& direction, const glm::vec3& up) {
@@ -249,7 +289,14 @@ void GraphicsEnvironment::Run3D() {
 	float farPlane = 50.0f;
 	float fieldOfView = 60;
 
-	camera->SetPosition(glm::vec3(0.0f, 5.0f, 20.0f));
+	float localIntensity = 0.5f;
+	float globalIntensity = 0.05f;
+
+	bool gammaCorrection = false;
+
+	float localLightPosition[3] = { 0.0f, 5.0f, 8.0f };
+
+	camera.SetPosition(glm::vec3(0.0f, 5.0f, 20.0f));
 	glm::vec3 cameraTarget(0.0f, 0.0f, 0.0f);
 
 	glm::mat4 view;
@@ -283,9 +330,11 @@ void GraphicsEnvironment::Run3D() {
 			it->SetPosition(position);
 		}*/
 
-		camera->SetLookFrame(mouse.spherical.ToMat4());
-		view = camera->LookForward();
+		if(mouse.enabled)
+			camera.SetLookFrame(mouse.spherical.ToMat4());
+		view = camera.LookForward();
 		GetRenderer("3d_scene")->SetView(view);
+		GetRenderer("lightbulb")->SetView(view);
 
 		if (width >= height) {
 			aspectRatio = width / (height * 1.0f);
@@ -296,7 +345,24 @@ void GraphicsEnvironment::Run3D() {
 		projection = glm::perspective(
 			glm::radians(fieldOfView), aspectRatio, nearPlane, farPlane);
 		GetRenderer("3d_scene")->SetProjection(projection);
+		GetRenderer("lightbulb")->SetProjection(projection);
 
+		Light& localLight = GetRenderer("3d_scene")->GetScene()->GetLocalLight();
+		Light& globalLight = GetRenderer("3d_scene")->GetScene()->GetGlobalLight();
+
+		localLight.intensity = localIntensity;
+		globalLight.intensity = globalIntensity;
+
+		if (gammaCorrection)
+			glEnable(GL_FRAMEBUFFER_SRGB);
+		else
+			glDisable(GL_FRAMEBUFFER_SRGB);
+
+		std::shared_ptr<GraphicsObject> lightbulb = manager->Get("lightbulb");
+
+		lightbulb->SetPosition(glm::vec3(localLightPosition[0], localLightPosition[1], localLightPosition[2]));
+		localLight.position = glm::vec3(localLightPosition[0], localLightPosition[1], localLightPosition[2]);
+		lightbulb->PointAt(camera.GetPosition());
 		manager->Update(elapsedSeconds);
 		Render();
 
@@ -308,9 +374,10 @@ void GraphicsEnvironment::Run3D() {
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
 			1000.0f / io.Framerate, io.Framerate);
 		ImGui::ColorEdit3("Background color", (float*)&clearColor.r);
-		ImGui::SliderFloat("X Angle", &cubeXAngle, 0, 360);
-		ImGui::SliderFloat("Y Angle", &cubeYAngle, 0, 360);
-		ImGui::SliderFloat("Z Angle", &cubeZAngle, 0, 360);
+		ImGui::SliderFloat("Global Light Intensity", &globalIntensity, 0, 1);
+		ImGui::SliderFloat("Local Light Intensity", &localIntensity, 0, 1);
+		ImGui::Checkbox("Enable Gamma Correction", &gammaCorrection);
+		ImGui::DragFloat3("Local Light Position", localLightPosition, 0.5f, -20.0f, 20.0f);
 		ImGui::End();
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

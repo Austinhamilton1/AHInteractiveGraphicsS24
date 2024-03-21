@@ -26,6 +26,8 @@
     <None Include="imgui.ini" />
     <None Include="texture.vert.glsl" />
     <None Include="texture.frag.glsl" />
+    <None Include="lighting.frag.glsl" />
+    <None Include="lighting.vert.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="VertexBuffer.h">

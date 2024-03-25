@@ -41,6 +41,14 @@ void Renderer::RenderObject(GraphicsObject& object)
 	}
 }
 
+void Renderer::RenderCloth(Cloth& cloth) {
+	shader->SendMat4Uniform("world", cloth.GetReferenceFrame());
+	auto& buffer = cloth.GetVertexBuffer();
+	buffer->Select();
+	buffer->SetUpAttributeInterpretration();
+	glDrawElements(GL_LINES, cloth.GetRows() * cloth.GetColumns(), GL_FLOAT, 0);
+}
+
 void Renderer::RenderScene(Camera& camera) {
 	glUseProgram(shader->GetShaderProgram());
 	shader->SendMat4Uniform("projection", projection);
@@ -59,7 +67,13 @@ void Renderer::RenderScene(Camera& camera) {
 	auto& objects = scene->GetObjects();
 	// Render the objects in the scene
 	for (auto& object : objects) {
-		RenderObject(*object);
+		if (object->IsCloth()) {
+			Cloth& cloth = *(std::dynamic_pointer_cast<Cloth>(object).get());
+			RenderCloth(cloth);
+		}
+		else {
+			RenderObject(*object);
+		}
 	}
 	glDisableVertexAttribArray(0);
 	glDisableVertexAttribArray(1);

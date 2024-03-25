@@ -307,10 +307,6 @@ void GraphicsEnvironment::Run3D() {
 	ImGuiIO& io = ImGui::GetIO();
 	Timer timer;
 	double elapsedSeconds;
-	std::shared_ptr<RotateAnimation> rotateAnimation =
-		std::make_shared<RotateAnimation>();
-	rotateAnimation->SetObject(manager->Get("crate"));
-	manager->Get("crate")->SetAnimation(rotateAnimation);
 	while (!glfwWindowShouldClose(window)) {
 		elapsedSeconds = timer.GetElapsedTimeInSeconds();
 		ProcessInput(elapsedSeconds);
@@ -321,20 +317,10 @@ void GraphicsEnvironment::Run3D() {
 		glClearColor(clearColor.r, clearColor.g, clearColor.b, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-		/*for (auto& it : GetRenderer("3d_scene")->GetScene()->GetObjects()) {
-			glm::vec4 position = it->GetReferenceFrame()[3];
-			referenceFrame = glm::rotate(glm::mat4(1.0f), glm::radians(cubeYAngle), glm::vec3(0.0f, 1.0f, 0.0f));
-			referenceFrame = glm::rotate(referenceFrame, glm::radians(cubeXAngle), glm::vec3(1.0f, 0.0f, 0.0f));
-			referenceFrame = glm::rotate(referenceFrame, glm::radians(cubeZAngle), glm::vec3(0.0f, 0.0f, 1.0f));
-			it->SetReferenceFrame(referenceFrame);
-			it->SetPosition(position);
-		}*/
-
 		if(mouse.enabled)
 			camera.SetLookFrame(mouse.spherical.ToMat4());
 		view = camera.LookForward();
 		GetRenderer("3d_scene")->SetView(view);
-		GetRenderer("lightbulb")->SetView(view);
 
 		if (width >= height) {
 			aspectRatio = width / (height * 1.0f);
@@ -345,24 +331,12 @@ void GraphicsEnvironment::Run3D() {
 		projection = glm::perspective(
 			glm::radians(fieldOfView), aspectRatio, nearPlane, farPlane);
 		GetRenderer("3d_scene")->SetProjection(projection);
-		GetRenderer("lightbulb")->SetProjection(projection);
-
-		Light& localLight = GetRenderer("3d_scene")->GetScene()->GetLocalLight();
-		Light& globalLight = GetRenderer("3d_scene")->GetScene()->GetGlobalLight();
-
-		localLight.intensity = localIntensity;
-		globalLight.intensity = globalIntensity;
 
 		if (gammaCorrection)
 			glEnable(GL_FRAMEBUFFER_SRGB);
 		else
 			glDisable(GL_FRAMEBUFFER_SRGB);
 
-		std::shared_ptr<GraphicsObject> lightbulb = manager->Get("lightbulb");
-
-		lightbulb->SetPosition(glm::vec3(localLightPosition[0], localLightPosition[1], localLightPosition[2]));
-		localLight.position = glm::vec3(localLightPosition[0], localLightPosition[1], localLightPosition[2]);
-		lightbulb->PointAt(camera.GetPosition());
 		manager->Update(elapsedSeconds);
 		Render();
 

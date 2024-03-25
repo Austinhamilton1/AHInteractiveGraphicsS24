@@ -1,5 +1,6 @@
 #pragma once
 #include <glm/glm.hpp>
+#include <vector>
 
 struct SphericalCoordinate {
     float phi = 0.0f, theta = 0.0f, rho = 1.0f;
@@ -44,4 +45,23 @@ struct Light {
     glm::vec3 color;
     float intensity;
     float attenuationCoef;
+};
+
+struct Particle {
+    glm::vec3 position;
+    glm::vec3 velocity;
+    glm::vec3 springForce;
+};
+
+struct Triangle {
+    Particle* a;
+    Particle* b;
+    Particle* c;
+};
+
+struct Spring {
+    float restLength;
+    float stiffnessConstant;
+    Particle* i;
+    Particle* j;
 };

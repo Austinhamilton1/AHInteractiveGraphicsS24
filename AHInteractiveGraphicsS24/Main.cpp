@@ -286,6 +286,24 @@ static void SetUpLightbulb(GraphicsEnvironment& env, std::shared_ptr<Shader>& sh
 	scene->AddObject(lightbulb);
 }
 
+void SetUpClothScene(GraphicsEnvironment& env, std::shared_ptr<Shader>& shader, std::shared_ptr<Scene>& scene) {
+	TextFile vertSource("basic.vert.glsl");
+	TextFile fragSource("basic.frag.glsl");
+	if (!vertSource.ReadIn() || !fragSource.ReadIn()) return;
+	shader = std::make_shared<Shader>(vertSource.GetData(), fragSource.GetData());
+	shader->AddUniform("projection");
+	shader->AddUniform("world");
+	shader->AddUniform("view");
+
+	scene = std::make_shared<Scene>();
+	std::shared_ptr<Cloth> cloth = std::make_shared<Cloth>(40, 40, 10);
+	env.AddObject("cloth", cloth);
+	std::shared_ptr<VertexBuffer> buffer = Generate::ClothBuffer(cloth);
+	cloth->SetVertexBuffer(buffer);
+	cloth->SetPosition(glm::vec3(0, 0, 0));
+	scene->AddObject(cloth);
+}
+
 void SetUp3DScene3(GraphicsEnvironment& env, std::shared_ptr<Shader>& shader, std::shared_ptr<Scene>& scene) {
 	TextFile vertSource("lighting.vert.glsl");
 	TextFile fragSource("lighting.frag.glsl");
@@ -375,17 +393,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 	std::shared_ptr<Shader> shader;
 	std::shared_ptr<Scene> scene;
-	SetUp3DScene2(glfw, shader, scene);
-
-	std::shared_ptr<Shader> lightbulbShader;
-	std::shared_ptr<Scene> lightbulbScene;
-	SetUpLightbulb(glfw, lightbulbShader, lightbulbScene);
+	SetUpClothScene(glfw, shader, scene);
 
 	glfw.CreateRenderer("3d_scene", shader);
 	glfw.GetRenderer("3d_scene")->SetScene(scene);
-
-	glfw.CreateRenderer("lightbulb", lightbulbShader);
-	glfw.GetRenderer("lightbulb")->SetScene(lightbulbScene);
 
 	glfw.StaticAllocate();
 

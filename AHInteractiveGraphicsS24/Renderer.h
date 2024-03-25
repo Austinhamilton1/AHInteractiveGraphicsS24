@@ -4,6 +4,7 @@
 #include "GraphicsObject.h"
 #include "Scene.h"
 #include "Camera.h"
+#include "Cloth.h"
 #include <glm/glm.hpp>
 
 class Renderer : public BaseObject {
@@ -27,6 +28,7 @@ public:
 	void StaticAllocate(const std::vector<std::shared_ptr<GraphicsObject>>& objects);
 
 	void RenderObject(GraphicsObject& object);
+	void RenderCloth(Cloth& cloth);
 
 	void RenderScene(Camera& camera);
 };

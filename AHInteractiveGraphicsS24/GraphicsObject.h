@@ -51,6 +51,8 @@ public:
 	void Update(double elapsedSeconds);
 
 	void PointAt(glm::vec3 target);
+
+	virtual inline bool IsCloth() { return false; }
 };
 
 

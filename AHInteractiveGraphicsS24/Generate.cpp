@@ -102,6 +102,70 @@ std::shared_ptr<VertexBuffer> Generate::XYPlane(float width, float height, glm::
 	return buffer;
 }
 
+std::shared_ptr<VertexBuffer> Generate::XZLineCircle(float radius, glm::vec3 color, int steps) {
+	std::shared_ptr<VertexBuffer> buffer = std::make_shared<VertexBuffer>(6);
+
+	for (float theta = 0; theta < 360; theta += steps) {
+		float radianTheta = glm::radians(theta);
+		float x = radius * glm::cos(radianTheta);
+		float z = radius * glm::sin(radianTheta);
+		buffer->AddVertexData(6, x, 0.0f, z, color.r, color.g, color.b);
+	}
+
+	buffer->AddVertexAttribute("position", 0, 3, 0);
+	buffer->AddVertexAttribute("vertexColor", 1, 3, 3);
+
+	return buffer;
+}
+
+void Generate::LineCircleIndexes(std::shared_ptr<IndexBuffer>& bufferToFill, int numberOfLineSegments, bool isClosed) {
+	for (int i = 0; i < numberOfLineSegments - 1; i++) {
+		bufferToFill->AddIndexData(2, i, i + 1);
+	}
+	if (isClosed)
+		bufferToFill->AddIndexData(2, numberOfLineSegments - 1, 0);
+}
+
+std::shared_ptr<VertexBuffer> Generate::LineCylinder(float height, float radius, glm::vec3 color, int steps) {
+	std::shared_ptr<VertexBuffer> buffer = std::make_shared<VertexBuffer>(6);
+
+	float halfHeight = height / 2;
+
+	for (float theta = 0; theta < 360; theta += steps) {
+		float radianTheta = glm::radians(theta);
+		float x = radius * glm::cos(radianTheta);
+		float z = radius * glm::sin(radianTheta);
+		buffer->AddVertexData(6, x, halfHeight, z, color.r, color.g, color.b);
+	}
+	for (float theta = 0; theta < 360; theta += steps) {
+		float radianTheta = glm::radians(theta);
+		float x = radius * glm::cos(radianTheta);
+		float z = radius * glm::sin(radianTheta);
+		buffer->AddVertexData(6, x, -halfHeight, z, color.r, color.g, color.b);
+	}
+
+	
+
+	buffer->AddVertexAttribute("position", 0, 3, 0);
+	buffer->AddVertexAttribute("vertexColor", 1, 3, 3);
+
+	return buffer;
+}
+
+void Generate::LineCylinderIndexes(std::shared_ptr<IndexBuffer>& bufferToFill, int numberOfLineSegments) {
+	for (int i = 0; i < numberOfLineSegments; i++) {
+		int next = (i + 1) % numberOfLineSegments;
+		bufferToFill->AddIndexData(2, i, next);
+	}
+	for (int i = 0; i < numberOfLineSegments; i++) {
+		int next = (i + 1) % numberOfLineSegments;
+		bufferToFill->AddIndexData(2, i + numberOfLineSegments, next + numberOfLineSegments);
+	}
+	for (int i = 0; i < numberOfLineSegments; i++) {
+		bufferToFill->AddIndexData(2, i, i + numberOfLineSegments);
+	}
+}
+
 std::shared_ptr<VertexBuffer> Generate::NormalCuboid(float width, float height, float depth, glm::vec4 color, glm::vec2 tex)
 {
 	std::shared_ptr<VertexBuffer> buffer = std::make_shared<VertexBuffer>(12);

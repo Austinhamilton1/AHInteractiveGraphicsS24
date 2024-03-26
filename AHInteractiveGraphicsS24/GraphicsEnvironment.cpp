@@ -6,6 +6,7 @@
 #include "Timer.h"
 #include "RotateAnimation.h"
 #include "GraphicsObject.h"
+#include "GeometricPlane.h"
 
 GraphicsEnvironment* GraphicsEnvironment::self;
 
@@ -136,6 +137,26 @@ void GraphicsEnvironment::OnMouseMove(GLFWwindow* window, double mouseX, double 
 
 	self->mouse.spherical.theta = 90.0f - (xPercent * 180); // left/right
 	self->mouse.spherical.phi = 180.0f - (yPercent * 180); // up/down
+
+	self->mouse.normalX = xPercent * 2.0f - 1.0f;
+	self->mouse.normalY = -(yPercent * 2.0f - 1.0f);
+}
+
+Ray GraphicsEnvironment::GetMouseRay(const glm::mat4& projection, const glm::mat4& view) {
+	Ray ray;
+	glm::mat4 projInv = glm::inverse(projection);
+	glm::mat4 viewInv = glm::inverse(view);
+	glm::vec4 rayDirClip = glm::vec4(mouse.normalX, mouse.normalY, -1, 1);
+	glm::vec4 rayDirEye = projInv * rayDirClip;
+	rayDirEye.z = -1;
+	rayDirEye.w = 0;
+	ray.direction = glm::normalize(viewInv * rayDirEye);
+	glm::vec4 rayStartClip = glm::vec4(mouse.normalX, mouse.normalY, 1, 1);
+	glm::vec4 rayStartEye = projInv * rayStartClip;
+	rayStartEye.z = 1;
+	rayStartEye.w = 1;
+	ray.startPoint = viewInv * rayStartEye;
+	return ray;
 }
 
 void GraphicsEnvironment::KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -311,6 +332,7 @@ void GraphicsEnvironment::Run3D() {
 		std::make_shared<RotateAnimation>();
 	rotateAnimation->SetObject(manager->Get("crate"));
 	manager->Get("crate")->SetAnimation(rotateAnimation);
+	GeometricPlane plane(glm::vec3(0, 1, 0), 0);
 	while (!glfwWindowShouldClose(window)) {
 		elapsedSeconds = timer.GetElapsedTimeInSeconds();
 		ProcessInput(elapsedSeconds);
@@ -335,6 +357,7 @@ void GraphicsEnvironment::Run3D() {
 		view = camera.LookForward();
 		GetRenderer("3d_scene")->SetView(view);
 		GetRenderer("lightbulb")->SetView(view);
+		GetRenderer("circle")->SetView(view);
 
 		if (width >= height) {
 			aspectRatio = width / (height * 1.0f);
@@ -346,6 +369,7 @@ void GraphicsEnvironment::Run3D() {
 			glm::radians(fieldOfView), aspectRatio, nearPlane, farPlane);
 		GetRenderer("3d_scene")->SetProjection(projection);
 		GetRenderer("lightbulb")->SetProjection(projection);
+		GetRenderer("circle")->SetProjection(projection);
 
 		Light& localLight = GetRenderer("3d_scene")->GetScene()->GetLocalLight();
 		Light& globalLight = GetRenderer("3d_scene")->GetScene()->GetGlobalLight();
@@ -364,6 +388,13 @@ void GraphicsEnvironment::Run3D() {
 		localLight.position = glm::vec3(localLightPosition[0], localLightPosition[1], localLightPosition[2]);
 		lightbulb->PointAt(camera.GetPosition());
 		manager->Update(elapsedSeconds);
+		Ray ray = GetMouseRay(projection, view);
+		float offset = plane.GetIntersectionOffset(ray);
+		if (offset > 0) {
+			glm::vec3 point = ray.GetPoint(offset);
+			std::shared_ptr<GraphicsObject> cylinder = manager->Get("cylinder");
+			cylinder->SetPosition(glm::vec3(point.x, cylinder->GetReferenceFrame()[3].y, point.z));
+		}
 		Render();
 
 		ImGui_ImplOpenGL3_NewFrame();

@@ -3,6 +3,7 @@
 #include <memory>
 
 #include "VertexBuffer.h"
+#include "IndexBuffer.h"
 #include "GraphicsStructures.h"
 
 class IAnimation;
@@ -12,6 +13,7 @@ class GraphicsObject
 protected:
 	glm::mat4 referenceFrame;
 	std::shared_ptr<VertexBuffer> buffer;
+	std::shared_ptr<IndexBuffer> indexBuffer;
 	GraphicsObject* parent;
 	std::vector<std::shared_ptr<GraphicsObject>> children;
 	std::shared_ptr<IAnimation> animation = nullptr;
@@ -33,7 +35,7 @@ public:
 	inline void SetReferenceFrame(const glm::mat4& referenceFrame) {
 		this->referenceFrame = referenceFrame;
 	}
-	void StaticAllocateVertexBuffer();
+	void StaticAllocateBuffers();
 
 	void AddChild(std::shared_ptr<GraphicsObject> child);
 	inline const std::vector<std::shared_ptr<GraphicsObject>>& GetChildren() const {
@@ -51,6 +53,11 @@ public:
 	void Update(double elapsedSeconds);
 
 	void PointAt(glm::vec3 target);
+
+	void CreateIndexBuffer();
+	inline std::shared_ptr<IndexBuffer>& GetIndexBuffer() { return indexBuffer; }
+
+	bool IsIndexed() const { return indexBuffer != nullptr; }
 };
 
 

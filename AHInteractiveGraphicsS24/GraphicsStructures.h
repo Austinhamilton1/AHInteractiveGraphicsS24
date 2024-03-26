@@ -31,6 +31,7 @@ struct MouseParams {
     int windowWidth = 0, windowHeight = 0;
     float fieldOfView = 60.0f;
     bool enabled = false;
+    float normalX = 0, normalY = 0;
 };
 
 struct Material {

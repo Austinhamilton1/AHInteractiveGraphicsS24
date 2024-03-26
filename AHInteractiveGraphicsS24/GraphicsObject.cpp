@@ -2,7 +2,7 @@
 #include "IAnimation.h"
 #include <glm/gtc/matrix_transform.hpp>
 
-GraphicsObject::GraphicsObject() : referenceFrame(1.0f), parent(nullptr), material({0.1f, 0.5f, 16.0f}) {
+GraphicsObject::GraphicsObject() : referenceFrame(1.0f), parent(nullptr), material({0.1f, 0.5f, 16.0f}), indexBuffer(nullptr) {
 }
 
 GraphicsObject::~GraphicsObject()
@@ -27,13 +27,18 @@ void GraphicsObject::SetVertexBuffer(std::shared_ptr<VertexBuffer> buffer)
 	this->buffer = buffer;
 }
 
-void GraphicsObject::StaticAllocateVertexBuffer()
+void GraphicsObject::StaticAllocateBuffers()
 {
 	buffer->Select();
 	buffer->StaticAllocate();
 	buffer->Deselect();
+	if (indexBuffer != nullptr) {
+		indexBuffer->SelectBuffer();
+		indexBuffer->StaticAllocate();
+		indexBuffer->DeselectBuffer();
+	}
 	for (auto& child : children) {
-		child->StaticAllocateVertexBuffer();
+		child->StaticAllocateBuffers();
 	}
 }
 
@@ -79,4 +84,8 @@ void GraphicsObject::PointAt(glm::vec3 target) {
 	referenceFrame[0] = glm::vec4(xAxis, 0.0f);
 	referenceFrame[1] = glm::vec4(yAxis, 0.0f);
 	referenceFrame[2] = glm::vec4(zAxis, 0.0f);
+}
+
+void GraphicsObject::CreateIndexBuffer() {
+	indexBuffer = std::make_shared<IndexBuffer>();
 }

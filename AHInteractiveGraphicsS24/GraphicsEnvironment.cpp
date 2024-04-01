@@ -7,6 +7,7 @@
 #include "RotateAnimation.h"
 #include "GraphicsObject.h"
 #include "GeometricPlane.h"
+#include "Cloth.h"
 
 GraphicsEnvironment* GraphicsEnvironment::self;
 
@@ -87,7 +88,7 @@ void GraphicsEnvironment::CreateRenderer(const std::string& name, std::shared_pt
 void GraphicsEnvironment::StaticAllocate() {
 	for (auto& it : rendererMap) {
 		std::shared_ptr<Renderer> renderer = it.second;
-		renderer->StaticAllocate(renderer->GetScene()->GetObjects());
+		renderer->Allocate(renderer->GetScene()->GetObjects());
 	}
 }
 
@@ -310,12 +311,10 @@ void GraphicsEnvironment::Run3D() {
 	float farPlane = 50.0f;
 	float fieldOfView = 60;
 
-	float localIntensity = 0.5f;
-	float globalIntensity = 0.05f;
-
-	bool gammaCorrection = false;
-
-	float localLightPosition[3] = { 0.0f, 5.0f, 8.0f };
+	float stretchConstant = 25.0f;
+	float bendConstant = 25.0f;
+	float shearConstant = 25.0f;
+	float dampingFactor = 0.5f;
 
 	camera.SetPosition(glm::vec3(0.0f, 5.0f, 20.0f));
 	glm::vec3 cameraTarget(0.0f, 0.0f, 0.0f);
@@ -328,11 +327,6 @@ void GraphicsEnvironment::Run3D() {
 	ImGuiIO& io = ImGui::GetIO();
 	Timer timer;
 	double elapsedSeconds;
-	std::shared_ptr<RotateAnimation> rotateAnimation =
-		std::make_shared<RotateAnimation>();
-	rotateAnimation->SetObject(manager->Get("crate"));
-	manager->Get("crate")->SetAnimation(rotateAnimation);
-	GeometricPlane plane(glm::vec3(0, 1, 0), 0);
 	while (!glfwWindowShouldClose(window)) {
 		elapsedSeconds = timer.GetElapsedTimeInSeconds();
 		ProcessInput(elapsedSeconds);
@@ -340,24 +334,21 @@ void GraphicsEnvironment::Run3D() {
 		mouse.windowHeight = height;
 		mouse.windowWidth = width;
 
+		if (manager->Get("cloth") != nullptr) {
+			std::shared_ptr<Cloth> cloth = std::dynamic_pointer_cast<Cloth>(manager->Get("cloth"));
+			cloth->SetBendFactor(bendConstant);
+			cloth->SetShearFactor(shearConstant);
+			cloth->SetStretchFactor(stretchConstant);
+			cloth->SetDampingFactor(dampingFactor);
+		}
+
 		glClearColor(clearColor.r, clearColor.g, clearColor.b, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
-		/*for (auto& it : GetRenderer("3d_scene")->GetScene()->GetObjects()) {
-			glm::vec4 position = it->GetReferenceFrame()[3];
-			referenceFrame = glm::rotate(glm::mat4(1.0f), glm::radians(cubeYAngle), glm::vec3(0.0f, 1.0f, 0.0f));
-			referenceFrame = glm::rotate(referenceFrame, glm::radians(cubeXAngle), glm::vec3(1.0f, 0.0f, 0.0f));
-			referenceFrame = glm::rotate(referenceFrame, glm::radians(cubeZAngle), glm::vec3(0.0f, 0.0f, 1.0f));
-			it->SetReferenceFrame(referenceFrame);
-			it->SetPosition(position);
-		}*/
 
 		if(mouse.enabled)
 			camera.SetLookFrame(mouse.spherical.ToMat4());
 		view = camera.LookForward();
-		GetRenderer("3d_scene")->SetView(view);
-		GetRenderer("lightbulb")->SetView(view);
-		GetRenderer("circle")->SetView(view);
+		GetRenderer("cloth_scene")->SetView(view);
 
 		if (width >= height) {
 			aspectRatio = width / (height * 1.0f);
@@ -367,34 +358,10 @@ void GraphicsEnvironment::Run3D() {
 		}
 		projection = glm::perspective(
 			glm::radians(fieldOfView), aspectRatio, nearPlane, farPlane);
-		GetRenderer("3d_scene")->SetProjection(projection);
-		GetRenderer("lightbulb")->SetProjection(projection);
-		GetRenderer("circle")->SetProjection(projection);
+		GetRenderer("cloth_scene")->SetProjection(projection);
 
-		Light& localLight = GetRenderer("3d_scene")->GetScene()->GetLocalLight();
-		Light& globalLight = GetRenderer("3d_scene")->GetScene()->GetGlobalLight();
-
-		localLight.intensity = localIntensity;
-		globalLight.intensity = globalIntensity;
-
-		if (gammaCorrection)
-			glEnable(GL_FRAMEBUFFER_SRGB);
-		else
-			glDisable(GL_FRAMEBUFFER_SRGB);
-
-		std::shared_ptr<GraphicsObject> lightbulb = manager->Get("lightbulb");
-
-		lightbulb->SetPosition(glm::vec3(localLightPosition[0], localLightPosition[1], localLightPosition[2]));
-		localLight.position = glm::vec3(localLightPosition[0], localLightPosition[1], localLightPosition[2]);
-		lightbulb->PointAt(camera.GetPosition());
 		manager->Update(elapsedSeconds);
-		Ray ray = GetMouseRay(projection, view);
-		float offset = plane.GetIntersectionOffset(ray);
-		if (offset > 0) {
-			glm::vec3 point = ray.GetPoint(offset);
-			std::shared_ptr<GraphicsObject> cylinder = manager->Get("cylinder");
-			cylinder->SetPosition(glm::vec3(point.x, cylinder->GetReferenceFrame()[3].y, point.z));
-		}
+
 		Render();
 
 		ImGui_ImplOpenGL3_NewFrame();
@@ -404,14 +371,15 @@ void GraphicsEnvironment::Run3D() {
 		ImGui::Text(GetLog().c_str());
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
 			1000.0f / io.Framerate, io.Framerate);
+		ImGui::SliderFloat("Stretch Constant", &stretchConstant, 1.0f, 30.0f);
+		ImGui::SliderFloat("Bend Constant", &bendConstant, 1.0f, 30.0f);
+		ImGui::SliderFloat("Shear Constant", &shearConstant, 1.0f, 30.0f);
+		ImGui::SliderFloat("Damping Factor", &dampingFactor, 0.0f, 1.0f);
 		ImGui::ColorEdit3("Background color", (float*)&clearColor.r);
-		ImGui::SliderFloat("Global Light Intensity", &globalIntensity, 0, 1);
-		ImGui::SliderFloat("Local Light Intensity", &localIntensity, 0, 1);
-		ImGui::Checkbox("Enable Gamma Correction", &gammaCorrection);
-		ImGui::DragFloat3("Local Light Position", localLightPosition, 0.5f, -20.0f, 20.0f);
 		ImGui::End();
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+		
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

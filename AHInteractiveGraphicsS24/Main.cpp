@@ -20,6 +20,7 @@
 #include "TextFile.h"
 #include "GraphicsEnvironment.h"
 #include "Generate.h"
+#include "Cloth.h"
 
 static void SetUpScene(std::shared_ptr<Shader>& shader, std::shared_ptr<Scene>& scene) {
 	TextFile vertSource("basic.vert.glsl");
@@ -387,6 +388,41 @@ static void SetUpPCObjectsScene(GraphicsEnvironment& env, std::shared_ptr<Shader
 	scene->AddObject(pcLinesCylinder);
 }
 
+static void SetUpClothScene(GraphicsEnvironment& env, std::shared_ptr<Shader>& shader, std::shared_ptr<Scene>& scene) {
+	TextFile vertSource("texture.vert.glsl");
+	TextFile fragSource("texture.frag.glsl");
+	if (!vertSource.ReadIn() || !fragSource.ReadIn()) return;
+	shader = std::make_shared<Shader>(vertSource.GetData(), fragSource.GetData());
+	shader->AddUniform("projection");
+	shader->AddUniform("view");
+	shader->AddUniform("world");
+	shader->AddUniform("texUnit");
+
+	std::shared_ptr<Texture> clothTexture = std::make_shared<Texture>();
+	clothTexture->LoadTextureDataFromFile("Cloths/cloth.jpg");
+
+	std::shared_ptr<Cloth> cloth = std::make_shared<Cloth>(glm::vec3(0.0f, 5.0f, 0.0f), 10, 10);
+	cloth->Pin(9, 0);
+	cloth->Pin(9, 1);
+	cloth->Pin(9, 2);
+	cloth->Pin(9, 9);
+	cloth->Pin(9, 8);
+	cloth->Pin(9, 7);
+	cloth->SetPosition({ 0.0f, 5.0f, 0.0f });
+	env.AddObject("cloth", cloth);
+	std::shared_ptr<VertexBuffer> buffer = Generate::ClothBuffer(cloth, {0.0f, 0.0f, 1.0f});
+	buffer->SetTexture(clothTexture);
+	buffer->SelectTexture();
+	cloth->SetVertexBuffer(buffer);
+	//cloth->CreateIndexBuffer();
+	//Generate::ClothIndexes(cloth->GetIndexBuffer(), cloth);
+	//buffer->SetPrimitiveType(GL_LINES);
+
+	scene = std::make_shared<Scene>();
+	cloth->SetPosition({ 0.0f, 0.0f, 0.0f });
+	scene->AddObject(cloth);
+}
+
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	_In_opt_ HINSTANCE hPrevInstance,
 	_In_ LPWSTR    lpCmdLine,
@@ -407,24 +443,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 	std::shared_ptr<Shader> shader;
 	std::shared_ptr<Scene> scene;
-	SetUp3DScene2(glfw, shader, scene);
+	SetUpClothScene(glfw, shader, scene);
 
-	std::shared_ptr<Shader> lightbulbShader;
-	std::shared_ptr<Scene> lightbulbScene;
-	SetUpLightbulb(glfw, lightbulbShader, lightbulbScene);
-
-	std::shared_ptr<Shader> circleShader;
-	std::shared_ptr<Scene> circleScene;
-	SetUpPCObjectsScene(glfw, circleShader, circleScene);
-
-	glfw.CreateRenderer("3d_scene", shader);
-	glfw.GetRenderer("3d_scene")->SetScene(scene);
-
-	glfw.CreateRenderer("lightbulb", lightbulbShader);
-	glfw.GetRenderer("lightbulb")->SetScene(lightbulbScene);
-
-	glfw.CreateRenderer("circle", circleShader);
-	glfw.GetRenderer("circle")->SetScene(circleScene);
+	glfw.CreateRenderer("cloth_scene", shader);
+	glfw.GetRenderer("cloth_scene")->SetScene(scene);
 
 	glfw.StaticAllocate();
 

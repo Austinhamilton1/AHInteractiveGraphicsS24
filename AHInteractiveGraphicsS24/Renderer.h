@@ -24,7 +24,7 @@ public:
 	inline void SetView(const glm::mat4& view) { this->view = view; }
 	inline void SetProjection(const glm::mat4& projection) { this->projection = projection; }
 
-	void StaticAllocate(const std::vector<std::shared_ptr<GraphicsObject>>& objects);
+	void Allocate(const std::vector<std::shared_ptr<GraphicsObject>>& objects);
 
 	void RenderObject(GraphicsObject& object);
 

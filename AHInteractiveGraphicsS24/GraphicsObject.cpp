@@ -27,10 +27,13 @@ void GraphicsObject::SetVertexBuffer(std::shared_ptr<VertexBuffer> buffer)
 	this->buffer = buffer;
 }
 
-void GraphicsObject::StaticAllocateBuffers()
+void GraphicsObject::AllocateBuffers()
 {
 	buffer->Select();
-	buffer->StaticAllocate();
+	if (buffer->IsDynamic())
+		buffer->DynamicAllocate();
+	else
+		buffer->StaticAllocate();
 	buffer->Deselect();
 	if (indexBuffer != nullptr) {
 		indexBuffer->SelectBuffer();
@@ -38,7 +41,7 @@ void GraphicsObject::StaticAllocateBuffers()
 		indexBuffer->DeselectBuffer();
 	}
 	for (auto& child : children) {
-		child->StaticAllocateBuffers();
+		child->AllocateBuffers();
 	}
 }
 

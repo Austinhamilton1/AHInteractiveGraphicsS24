@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
+#include "Cloth.h"
 
 class Generate {
 public:
@@ -43,6 +44,21 @@ public:
 	static void LineCylinderIndexes(
 		std::shared_ptr<IndexBuffer>& bufferToFill,
 		int numberOfLineSegments = 36
+	);
+
+	static std::shared_ptr<VertexBuffer> ClothLineBuffer(
+		std::shared_ptr<Cloth>&,
+		glm::vec3 color = {1.0f, 0.0f, 0.0f}
+	);
+
+	static void ClothIndexes(
+		std::shared_ptr<IndexBuffer>& bufferToFill,
+		std::shared_ptr<Cloth>
+	);
+
+	static std::shared_ptr<VertexBuffer> ClothBuffer(
+		std::shared_ptr<Cloth>&,
+		glm::vec3 color = {1.0f, 0.0f, 0.0f}
 	);
 
 	static std::shared_ptr<VertexBuffer> NormalCuboid(

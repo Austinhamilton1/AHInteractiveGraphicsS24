@@ -8,10 +8,10 @@ Renderer::Renderer(std::shared_ptr<Shader> shader) {
 	projection = glm::mat4(1.0f);
 }
 
-void Renderer::StaticAllocate(const std::vector<std::shared_ptr<GraphicsObject>>& objects) {
+void Renderer::Allocate(const std::vector<std::shared_ptr<GraphicsObject>>& objects) {
 	glBindVertexArray(vaoId);
 	for (auto& object : objects) {
-		object->StaticAllocateBuffers();
+		object->AllocateBuffers();
 	}
 	glBindVertexArray(0);
 }
@@ -20,10 +20,10 @@ void Renderer::RenderObject(GraphicsObject& object)
 {
 	shader->SendMat4Uniform("world", object.GetReferenceFrame());
 
-	Material material = object.GetMaterial();
-	shader->SendFloatUniform("materialAmbientIntensity", material.ambientIntensity);
-	shader->SendFloatUniform("materialSpecularIntensity", material.specularIntensity);
-	shader->SendFloatUniform("materialShininess", material.shininess);
+	//Material material = object.GetMaterial();
+	//shader->SendFloatUniform("materialAmbientIntensity", material.ambientIntensity);
+	//shader->SendFloatUniform("materialSpecularIntensity", material.specularIntensity);
+	//shader->SendFloatUniform("materialShininess", material.shininess);
 
 	auto& buffer = object.GetVertexBuffer();
 	buffer->Select();
@@ -35,9 +35,17 @@ void Renderer::RenderObject(GraphicsObject& object)
 	if (object.IsIndexed()) {
 		auto indexBuffer = object.GetIndexBuffer();
 		indexBuffer->SelectBuffer();
+		if (buffer->IsDynamic()) {
+			glBufferSubData(GL_ARRAY_BUFFER, 0, buffer->GetMaxData(), &buffer->GetData().front());
+			buffer->SetUpAttributeInterpretration();
+		}
 		glDrawElements(buffer->GetPrimitiveType(), indexBuffer->GetSize(), GL_UNSIGNED_SHORT, (void*)0);
 	}
 	else {
+		if (buffer->IsDynamic()) {
+			glBufferSubData(GL_ARRAY_BUFFER, 0, buffer->GetMaxData(), &buffer->GetData().front());
+			buffer->SetUpAttributeInterpretration();
+		}
 		glDrawArrays(buffer->GetPrimitiveType(), 0, buffer->GetNumberOfVertices());
 	}
 
@@ -51,7 +59,7 @@ void Renderer::RenderObject(GraphicsObject& object)
 void Renderer::RenderScene(Camera& camera) {
 	glUseProgram(shader->GetShaderProgram());
 	shader->SendMat4Uniform("projection", projection);
-	Light globalLight = scene->GetGlobalLight();
+	/*Light globalLight = scene->GetGlobalLight();
 	Light localLight = scene->GetLocalLight();
 	shader->SendVec3Uniform("globalLightPosition", globalLight.position);
 	shader->SendVec3Uniform("globalLightColor", globalLight.color);
@@ -60,7 +68,7 @@ void Renderer::RenderScene(Camera& camera) {
 	shader->SendVec3Uniform("localLightColor", localLight.color);
 	shader->SendFloatUniform("localLightIntensity", localLight.intensity);
 	shader->SendFloatUniform("localLightAttenuationCoef", localLight.attenuationCoef);
-	shader->SendVec3Uniform("viewPosition", camera.GetPosition());
+	shader->SendVec3Uniform("viewPosition", camera.GetPosition());*/
 	glBindVertexArray(vaoId);
 	shader->SendMat4Uniform("view", view);
 	auto& objects = scene->GetObjects();

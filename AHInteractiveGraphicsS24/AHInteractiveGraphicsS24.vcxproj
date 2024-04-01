@@ -146,6 +146,7 @@
   <ItemGroup>
     <ClInclude Include="BaseObject.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="Cloth.h" />
     <ClInclude Include="Generate.h" />
     <ClInclude Include="GeometricPlane.h" />
     <ClInclude Include="GraphicsEnvironment.h" />
@@ -175,6 +176,7 @@
     <ClCompile Include="..\..\..\..\3rdparty\imgui\imgui_widgets.cpp" />
     <ClCompile Include="BaseObject.cpp" />
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="Cloth.cpp" />
     <ClCompile Include="Generate.cpp" />
     <ClCompile Include="GeometricPlane.cpp" />
     <ClCompile Include="GraphicsEnvironment.cpp" />

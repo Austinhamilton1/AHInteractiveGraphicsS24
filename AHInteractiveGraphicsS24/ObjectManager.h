@@ -14,4 +14,5 @@ public:
 		objectMap[key] = value;
 	}
 	void Update(double elapsedSeconds);
+	void SetBehaviorDefaults();
 };

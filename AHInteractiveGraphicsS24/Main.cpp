@@ -20,6 +20,7 @@
 #include "TextFile.h"
 #include "GraphicsEnvironment.h"
 #include "Generate.h"
+#include "HighLightBehavior.h"
 
 static void SetUpScene(std::shared_ptr<Shader>& shader, std::shared_ptr<Scene>& scene) {
 	TextFile vertSource("basic.vert.glsl");
@@ -321,6 +322,11 @@ void SetUp3DScene3(GraphicsEnvironment& env, std::shared_ptr<Shader>& shader, st
 	tex->SetTextureData(64, textureData);
 	scene = std::make_shared<Scene>();
 	std::shared_ptr<GraphicsObject> object = std::make_shared<GraphicsObject>();
+	object->CreateBoundingBox(10.0f, 5.0f, 5.0f);
+	std::shared_ptr<HighLightBehavior> objectHighlight = std::make_shared<HighLightBehavior>();
+	objectHighlight->SetObject(object);
+	object->AddBehavior("highlight", objectHighlight);
+
 	env.AddObject("cuboid", object);
 	std::shared_ptr<VertexBuffer> buffer = Generate::NormalCuboid(10.0f, 5.0f, 5.0f);
 
@@ -333,6 +339,10 @@ void SetUp3DScene3(GraphicsEnvironment& env, std::shared_ptr<Shader>& shader, st
 	std::shared_ptr<Texture> crateTexture = std::make_shared<Texture>();
 	crateTexture->LoadTextureDataFromFile("Crates/crate_texture.png");
 	std::shared_ptr<GraphicsObject> crate = std::make_shared<GraphicsObject>();
+	crate->CreateBoundingBox(10.0f, 5.0f, 5.0f);
+	std::shared_ptr<HighLightBehavior> crateHighLight = std::make_shared<HighLightBehavior>();
+	crateHighLight->SetObject(object);
+	crate->AddBehavior("highlight", crateHighLight);
 	env.AddObject("crate", crate);
 	std::shared_ptr<VertexBuffer> buffer2 = Generate::NormalCuboid(10.0f, 5.0f, 5.0f);
 
@@ -407,7 +417,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 	std::shared_ptr<Shader> shader;
 	std::shared_ptr<Scene> scene;
-	SetUp3DScene2(glfw, shader, scene);
+	SetUp3DScene3(glfw, shader, scene);
 
 	std::shared_ptr<Shader> lightbulbShader;
 	std::shared_ptr<Scene> lightbulbScene;

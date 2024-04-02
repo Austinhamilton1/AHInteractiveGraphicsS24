@@ -332,7 +332,9 @@ void GraphicsEnvironment::Run3D() {
 		std::make_shared<RotateAnimation>();
 	rotateAnimation->SetObject(manager->Get("crate"));
 	manager->Get("crate")->SetAnimation(rotateAnimation);
-	GeometricPlane plane(glm::vec3(0, 1, 0), 0);
+	GeometricPlane plane;
+	plane.Set(glm::vec3(0, 1, 0), 0);
+	manager->SetBehaviorDefaults();
 	while (!glfwWindowShouldClose(window)) {
 		elapsedSeconds = timer.GetElapsedTimeInSeconds();
 		ProcessInput(elapsedSeconds);
@@ -387,7 +389,6 @@ void GraphicsEnvironment::Run3D() {
 		lightbulb->SetPosition(glm::vec3(localLightPosition[0], localLightPosition[1], localLightPosition[2]));
 		localLight.position = glm::vec3(localLightPosition[0], localLightPosition[1], localLightPosition[2]);
 		lightbulb->PointAt(camera.GetPosition());
-		manager->Update(elapsedSeconds);
 		Ray ray = GetMouseRay(projection, view);
 		float offset = plane.GetIntersectionOffset(ray);
 		if (offset > 0) {
@@ -395,6 +396,10 @@ void GraphicsEnvironment::Run3D() {
 			std::shared_ptr<GraphicsObject> cylinder = manager->Get("cylinder");
 			cylinder->SetPosition(glm::vec3(point.x, cylinder->GetReferenceFrame()[3].y, point.z));
 		}
+		HighlightParams hp = { {}, &ray };
+		manager->Get("cuboid")->SetBehaviorParameters("highlight", hp);
+		manager->Get("crate")->SetBehaviorParameters("highlight", hp);
+		manager->Update(elapsedSeconds);
 		Render();
 
 		ImGui_ImplOpenGL3_NewFrame();

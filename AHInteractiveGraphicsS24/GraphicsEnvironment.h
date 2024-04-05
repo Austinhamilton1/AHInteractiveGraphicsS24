@@ -8,6 +8,7 @@
 #include "ObjectManager.h"
 #include "Camera.h"
 #include "GraphicsStructures.h"
+#include "Ray.h"
 
 class GraphicsEnvironment : public BaseObject {
 protected:
@@ -37,6 +38,7 @@ public:
 	void Render();
 	void ProcessInput(double elapsedSeconds);
 	static void OnMouseMove(GLFWwindow* window, double mouseX, double mouseY);
+	Ray GetMouseRay(const glm::mat4& projection, const glm::mat4& view);
 	static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 	static const glm::mat4& CreateViewMatrix(const glm::vec3& position, const glm::vec3& direction, const glm::vec3& up);
 	void Run2D();

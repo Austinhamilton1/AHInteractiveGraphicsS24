@@ -3,7 +3,10 @@
 #include <memory>
 
 #include "VertexBuffer.h"
+#include "IndexBuffer.h"
 #include "GraphicsStructures.h"
+#include "BoundingBox.h"
+#include "IBehavior.h"
 
 class IAnimation;
 
@@ -12,10 +15,13 @@ class GraphicsObject
 protected:
 	glm::mat4 referenceFrame;
 	std::shared_ptr<VertexBuffer> buffer;
+	std::shared_ptr<IndexBuffer> indexBuffer;
 	GraphicsObject* parent;
 	std::vector<std::shared_ptr<GraphicsObject>> children;
 	std::shared_ptr<IAnimation> animation = nullptr;
 	Material material;
+	std::shared_ptr<BoundingBox> boundingBox = nullptr;
+	std::unordered_map<std::string, std::shared_ptr<IBehavior>> behaviorMap;
 
 public:
 	GraphicsObject();
@@ -33,7 +39,7 @@ public:
 	inline void SetReferenceFrame(const glm::mat4& referenceFrame) {
 		this->referenceFrame = referenceFrame;
 	}
-	void StaticAllocateVertexBuffer();
+	void StaticAllocateBuffers();
 
 	void AddChild(std::shared_ptr<GraphicsObject> child);
 	inline const std::vector<std::shared_ptr<GraphicsObject>>& GetChildren() const {
@@ -51,6 +57,19 @@ public:
 	void Update(double elapsedSeconds);
 
 	void PointAt(glm::vec3 target);
+
+	void CreateIndexBuffer();
+	inline std::shared_ptr<IndexBuffer>& GetIndexBuffer() { return indexBuffer; }
+
+	bool IsIndexed() const { return indexBuffer != nullptr; }
+
+	void CreateBoundingBox(float width, float height, float depth);
+	inline const BoundingBox& GetBoundingBox() const { return *boundingBox.get(); }
+	bool IsIntersectingWithRay(const Ray& ray) const;
+
+	void AddBehavior(std::string name, std::shared_ptr<IBehavior> behavior);
+	void SetBehaviorDefaults();
+	void SetBehaviorParameters(std::string name, IParams& params);
 };
 
 

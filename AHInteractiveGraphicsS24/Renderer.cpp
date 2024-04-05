@@ -11,7 +11,7 @@ Renderer::Renderer(std::shared_ptr<Shader> shader) {
 void Renderer::StaticAllocate(const std::vector<std::shared_ptr<GraphicsObject>>& objects) {
 	glBindVertexArray(vaoId);
 	for (auto& object : objects) {
-		object->StaticAllocateVertexBuffer();
+		object->StaticAllocateBuffers();
 	}
 	glBindVertexArray(0);
 }
@@ -32,7 +32,14 @@ void Renderer::RenderObject(GraphicsObject& object)
 		buffer->GetTexture()->SelectToRender();
 	}
 	buffer->SetUpAttributeInterpretration();
-	glDrawArrays(buffer->GetPrimitiveType(), 0, buffer->GetNumberOfVertices());
+	if (object.IsIndexed()) {
+		auto indexBuffer = object.GetIndexBuffer();
+		indexBuffer->SelectBuffer();
+		glDrawElements(buffer->GetPrimitiveType(), indexBuffer->GetSize(), GL_UNSIGNED_SHORT, (void*)0);
+	}
+	else {
+		glDrawArrays(buffer->GetPrimitiveType(), 0, buffer->GetNumberOfVertices());
+	}
 
 	// Recursively render the children
 	auto& children = object.GetChildren();

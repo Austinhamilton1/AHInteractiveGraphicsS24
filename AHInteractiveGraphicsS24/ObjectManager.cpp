@@ -5,3 +5,9 @@ void ObjectManager::Update(double elapsedSeconds) {
 		it.second->Update(elapsedSeconds);
 	}
 }
+
+void ObjectManager::SetBehaviorDefaults() {
+	for (auto& it : objectMap) {
+		it.second->SetBehaviorDefaults();
+	}
+}

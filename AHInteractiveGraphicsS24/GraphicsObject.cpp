@@ -2,7 +2,8 @@
 #include "IAnimation.h"
 #include <glm/gtc/matrix_transform.hpp>
 
-GraphicsObject::GraphicsObject() : referenceFrame(1.0f), parent(nullptr), material({0.1f, 0.5f, 16.0f}) {
+GraphicsObject::GraphicsObject() : referenceFrame(1.0f), parent(nullptr), material({0.1f, 0.5f, 16.0f}), indexBuffer(nullptr) {
+	CreateBoundingBox(1.0f, 1.0f, 1.0f);
 }
 
 GraphicsObject::~GraphicsObject()
@@ -27,13 +28,18 @@ void GraphicsObject::SetVertexBuffer(std::shared_ptr<VertexBuffer> buffer)
 	this->buffer = buffer;
 }
 
-void GraphicsObject::StaticAllocateVertexBuffer()
+void GraphicsObject::StaticAllocateBuffers()
 {
 	buffer->Select();
 	buffer->StaticAllocate();
 	buffer->Deselect();
+	if (indexBuffer != nullptr) {
+		indexBuffer->SelectBuffer();
+		indexBuffer->StaticAllocate();
+		indexBuffer->DeselectBuffer();
+	}
 	for (auto& child : children) {
-		child->StaticAllocateVertexBuffer();
+		child->StaticAllocateBuffers();
 	}
 }
 
@@ -65,8 +71,8 @@ void GraphicsObject::RotateLocalZ(float degrees)
 }
 
 void GraphicsObject::Update(double elapsedSeconds) {
-	if (animation != nullptr) {
-		animation->Update(elapsedSeconds);
+	for (auto& it : behaviorMap) {
+		it.second->Update(elapsedSeconds);
 	}
 }
 
@@ -79,4 +85,33 @@ void GraphicsObject::PointAt(glm::vec3 target) {
 	referenceFrame[0] = glm::vec4(xAxis, 0.0f);
 	referenceFrame[1] = glm::vec4(yAxis, 0.0f);
 	referenceFrame[2] = glm::vec4(zAxis, 0.0f);
+}
+
+void GraphicsObject::CreateIndexBuffer() {
+	indexBuffer = std::make_shared<IndexBuffer>();
+}
+
+void GraphicsObject::CreateBoundingBox(float width, float height, float depth) {
+	boundingBox = std::make_shared<BoundingBox>();
+	boundingBox->SetReferenceFrame(referenceFrame);
+	boundingBox->Create(width, height, depth);
+}
+
+bool GraphicsObject::IsIntersectingWithRay(const Ray& ray) const {
+	boundingBox->SetReferenceFrame(referenceFrame);
+	return boundingBox->IsIntersectingWithRay(ray);
+}
+
+void GraphicsObject::AddBehavior(std::string name, std::shared_ptr<IBehavior> behavior) {
+	behaviorMap[name] = behavior;
+}
+
+void GraphicsObject::SetBehaviorDefaults() {
+	for (auto& it : behaviorMap) {
+		it.second->StoreDefaults();
+	}
+}
+
+void GraphicsObject::SetBehaviorParameters(std::string name, IParams& params) {
+	behaviorMap[name]->SetParameter(params);
 }

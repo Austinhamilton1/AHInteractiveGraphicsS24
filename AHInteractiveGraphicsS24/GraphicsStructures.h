@@ -1,5 +1,6 @@
 #pragma once
 #include <glm/glm.hpp>
+#include "Ray.h"
 
 struct SphericalCoordinate {
     float phi = 0.0f, theta = 0.0f, rho = 1.0f;
@@ -31,6 +32,7 @@ struct MouseParams {
     int windowWidth = 0, windowHeight = 0;
     float fieldOfView = 60.0f;
     bool enabled = false;
+    float normalX = 0, normalY = 0;
 };
 
 struct Material {
@@ -44,4 +46,10 @@ struct Light {
     glm::vec3 color;
     float intensity;
     float attenuationCoef;
+};
+
+struct IParams{};
+
+struct HighlightParams : IParams {
+    Ray* ray;
 };

@@ -137,7 +137,7 @@ void Cloth::Update(double elapsedTime) {
 	ClearMass();
 	CalculateMass();
 	float time = static_cast<float>(elapsedTime);
-	AddForce({0.0f, -5.0f, 0.0f});
+	AddForce({0.0f, -9.7f, 0.0f});
 	for (const Spring& spring : springs) {
 		float distance = glm::distance(positions[spring.i], positions[spring.j]);
 		glm::vec3 force = -spring.k

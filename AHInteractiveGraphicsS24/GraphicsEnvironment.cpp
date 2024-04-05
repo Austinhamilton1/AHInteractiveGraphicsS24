@@ -311,10 +311,10 @@ void GraphicsEnvironment::Run3D() {
 	float farPlane = 50.0f;
 	float fieldOfView = 60;
 
-	float stretchConstant = 25.0f;
-	float bendConstant = 25.0f;
-	float shearConstant = 25.0f;
-	float dampingFactor = 0.5f;
+	float stretchConstant = 10.0f;
+	float bendConstant = 10.0f;
+	float shearConstant = 10.0f;
+	float dampingFactor = 0.25f;
 
 	camera.SetPosition(glm::vec3(0.0f, 5.0f, 20.0f));
 	glm::vec3 cameraTarget(0.0f, 0.0f, 0.0f);

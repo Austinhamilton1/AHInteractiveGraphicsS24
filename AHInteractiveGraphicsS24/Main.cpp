@@ -398,8 +398,8 @@ static void SetUpClothScene(GraphicsEnvironment& env, std::shared_ptr<Shader>& s
 	shader->AddUniform("world");
 	shader->AddUniform("texUnit");
 
-	std::shared_ptr<Texture> clothTexture = std::make_shared<Texture>();
-	clothTexture->LoadTextureDataFromFile("Cloths/cloth.jpg");
+	//std::shared_ptr<Texture> clothTexture = std::make_shared<Texture>();
+	//clothTexture->LoadTextureDataFromFile("Cloths/cloth.jpg");
 
 	std::shared_ptr<Cloth> cloth = std::make_shared<Cloth>(glm::vec3(0.0f, 5.0f, 0.0f), 10, 10);
 	cloth->Pin(9, 0);
@@ -410,13 +410,13 @@ static void SetUpClothScene(GraphicsEnvironment& env, std::shared_ptr<Shader>& s
 	cloth->Pin(9, 7);
 	cloth->SetPosition({ 0.0f, 5.0f, 0.0f });
 	env.AddObject("cloth", cloth);
-	std::shared_ptr<VertexBuffer> buffer = Generate::ClothBuffer(cloth, {0.0f, 0.0f, 1.0f});
-	buffer->SetTexture(clothTexture);
-	buffer->SelectTexture();
+	std::shared_ptr<VertexBuffer> buffer = Generate::ClothLineBuffer(cloth, {1.0f, 0.0f, 0.0f});
+	//buffer->SetTexture(clothTexture);
+	//buffer->SelectTexture();
 	cloth->SetVertexBuffer(buffer);
-	//cloth->CreateIndexBuffer();
-	//Generate::ClothIndexes(cloth->GetIndexBuffer(), cloth);
-	//buffer->SetPrimitiveType(GL_LINES);
+	cloth->CreateIndexBuffer();
+	Generate::ClothIndexes(cloth->GetIndexBuffer(), cloth);
+	buffer->SetPrimitiveType(GL_LINES);
 
 	scene = std::make_shared<Scene>();
 	cloth->SetPosition({ 0.0f, 0.0f, 0.0f });

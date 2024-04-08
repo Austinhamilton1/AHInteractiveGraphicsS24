@@ -7,7 +7,7 @@ void HighLightBehavior::StoreDefaults() {
 }
 
 void HighLightBehavior::SetParameter(IParams& param) {
-	this->params = reinterpret_cast<HighlightParams&>(params);
+	this->params = reinterpret_cast<HighlightParams&>(param);
 }
 
 void HighLightBehavior::Update(double elapsedSeconds) {

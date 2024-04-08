@@ -7,6 +7,7 @@
 #include "RotateAnimation.h"
 #include "GraphicsObject.h"
 #include "GeometricPlane.h"
+#include "TranslateAnimation.h"
 
 GraphicsEnvironment* GraphicsEnvironment::self;
 
@@ -68,6 +69,7 @@ void GraphicsEnvironment::SetupGraphics() {
 	glfwSetFramebufferSizeCallback(window, GraphicsEnvironment::OnWindowSizeChanged);
 	glfwSetCursorPosCallback(window, GraphicsEnvironment::OnMouseMove);
 	glfwSetKeyCallback(window, GraphicsEnvironment::KeyCallback);
+	glfwSetMouseButtonCallback(window, GraphicsEnvironment::OnMouseClick);
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGui::StyleColorsDark();
@@ -194,6 +196,16 @@ void GraphicsEnvironment::KeyCallback(GLFWwindow* window, int key, int scancode,
 		lookFrame = glm::rotate(lookFrame, glm::radians(-90.0f), glm::vec3(0, 1, 0));
 		self->camera.SetLookFrame(lookFrame);
 		return;
+	}
+}
+
+void GraphicsEnvironment::OnMouseClick(GLFWwindow* window, int button, int action, int mods) {
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+		Ray mouseRay = self->GetMouseRay();
+		std::shared_ptr<GraphicsObject> cube = self->GetManager()->Get("cube");
+		if (cube->IsIntersectingWithRay(mouseRay)) {
+			std::static_pointer_cast<TranslateAnimation>(cube->GetAnimation())->Move();
+		}
 	}
 }
 
@@ -328,13 +340,12 @@ void GraphicsEnvironment::Run3D() {
 	ImGuiIO& io = ImGui::GetIO();
 	Timer timer;
 	double elapsedSeconds;
-	std::shared_ptr<RotateAnimation> rotateAnimation =
-		std::make_shared<RotateAnimation>();
-	rotateAnimation->SetObject(manager->Get("crate"));
-	manager->Get("crate")->SetAnimation(rotateAnimation);
 	GeometricPlane plane;
 	plane.Set(glm::vec3(0, 1, 0), 0);
 	manager->SetBehaviorDefaults();
+	std::shared_ptr<TranslateAnimation> translate = std::make_shared<TranslateAnimation>(glm::vec3(0.0f, 0.0f, -1.0f), 5.0f, 10.0f);
+	translate->SetObject(manager->Get("cube"));
+	manager->Get("cube")->SetAnimation(translate);
 	while (!glfwWindowShouldClose(window)) {
 		elapsedSeconds = timer.GetElapsedTimeInSeconds();
 		ProcessInput(elapsedSeconds);
@@ -344,15 +355,6 @@ void GraphicsEnvironment::Run3D() {
 
 		glClearColor(clearColor.r, clearColor.g, clearColor.b, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
-		/*for (auto& it : GetRenderer("3d_scene")->GetScene()->GetObjects()) {
-			glm::vec4 position = it->GetReferenceFrame()[3];
-			referenceFrame = glm::rotate(glm::mat4(1.0f), glm::radians(cubeYAngle), glm::vec3(0.0f, 1.0f, 0.0f));
-			referenceFrame = glm::rotate(referenceFrame, glm::radians(cubeXAngle), glm::vec3(1.0f, 0.0f, 0.0f));
-			referenceFrame = glm::rotate(referenceFrame, glm::radians(cubeZAngle), glm::vec3(0.0f, 0.0f, 1.0f));
-			it->SetReferenceFrame(referenceFrame);
-			it->SetPosition(position);
-		}*/
 
 		if(mouse.enabled)
 			camera.SetLookFrame(mouse.spherical.ToMat4());
@@ -389,16 +391,17 @@ void GraphicsEnvironment::Run3D() {
 		lightbulb->SetPosition(glm::vec3(localLightPosition[0], localLightPosition[1], localLightPosition[2]));
 		localLight.position = glm::vec3(localLightPosition[0], localLightPosition[1], localLightPosition[2]);
 		lightbulb->PointAt(camera.GetPosition());
-		Ray ray = GetMouseRay(projection, view);
-		float offset = plane.GetIntersectionOffset(ray);
+		mouseRay = GetMouseRay(projection, view);
+		float offset = plane.GetIntersectionOffset(mouseRay);
 		if (offset > 0) {
-			glm::vec3 point = ray.GetPoint(offset);
+			glm::vec3 point = mouseRay.GetPoint(offset);
 			std::shared_ptr<GraphicsObject> cylinder = manager->Get("cylinder");
 			cylinder->SetPosition(glm::vec3(point.x, cylinder->GetReferenceFrame()[3].y, point.z));
 		}
-		HighlightParams hp = { {}, &ray };
+		HighlightParams hp = { {}, &mouseRay };
 		manager->Get("cuboid")->SetBehaviorParameters("highlight", hp);
 		manager->Get("crate")->SetBehaviorParameters("highlight", hp);
+		manager->Get("cube")->SetBehaviorParameters("highlight", hp);
 		manager->Update(elapsedSeconds);
 		Render();
 

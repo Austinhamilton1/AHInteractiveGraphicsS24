@@ -341,26 +341,44 @@ void SetUp3DScene3(GraphicsEnvironment& env, std::shared_ptr<Shader>& shader, st
 	std::shared_ptr<GraphicsObject> crate = std::make_shared<GraphicsObject>();
 	crate->CreateBoundingBox(10.0f, 5.0f, 5.0f);
 	std::shared_ptr<HighLightBehavior> crateHighLight = std::make_shared<HighLightBehavior>();
-	crateHighLight->SetObject(object);
+	crateHighLight->SetObject(crate);
 	crate->AddBehavior("highlight", crateHighLight);
+
 	env.AddObject("crate", crate);
 	std::shared_ptr<VertexBuffer> buffer2 = Generate::NormalCuboid(10.0f, 5.0f, 5.0f);
 
 	buffer2->SetTexture(crateTexture);
-	buffer->SelectTexture();
+	buffer2->SelectTexture();
 	crate->SetVertexBuffer(buffer2);
 	crate->SetPosition(glm::vec3(-10, 5, 0));
 	scene->AddObject(crate);
+
+	std::shared_ptr<Texture> starTexture = std::make_shared<Texture>();
+	starTexture->LoadTextureDataFromFile("Misc/stars.jpg");
+	std::shared_ptr<GraphicsObject> cube = std::make_shared<GraphicsObject>();
+	cube->CreateBoundingBox(2.0f, 2.0f, 2.0f);
+	std::shared_ptr<HighLightBehavior> cubeHighLight = std::make_shared<HighLightBehavior>();
+	cubeHighLight->SetObject(cube);
+	cube->AddBehavior("highlight", cubeHighLight);
+
+	env.AddObject("cube", cube);
+	std::shared_ptr<VertexBuffer> buffer3 = Generate::NormalCuboid(2.0f, 2.0f, 2.0f);
+
+	buffer3->SetTexture(starTexture);
+	buffer3->SelectTexture();
+	cube->SetVertexBuffer(buffer3);
+	cube->SetPosition({8.0f, 2.0f, 8.0f});
+	scene->AddObject(cube);
 
 	std::shared_ptr<Texture> floorTexture = std::make_shared<Texture>();
 	floorTexture->LoadTextureDataFromFile("Floors/floor.png");
 	std::shared_ptr<GraphicsObject> floor = std::make_shared<GraphicsObject>();
 	env.AddObject("floor", floor);
-	std::shared_ptr<VertexBuffer> buffer3 = Generate::NormalXZPlane(20, 20);
+	std::shared_ptr<VertexBuffer> buffer4 = Generate::NormalXZPlane(20, 20);
 
-	buffer3->SetTexture(floorTexture);
-	buffer3->SelectTexture();
-	floor->SetVertexBuffer(buffer3);
+	buffer4->SetTexture(floorTexture);
+	buffer4->SelectTexture();
+	floor->SetVertexBuffer(buffer4);
 	floor->SetPosition(glm::vec3(0, 0, 0));
 	scene->AddObject(floor);
 }

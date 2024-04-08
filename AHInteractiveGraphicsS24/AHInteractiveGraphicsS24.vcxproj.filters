@@ -96,6 +96,9 @@
     <ClInclude Include="HighLightBehavior.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="TranslateAnimation.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -187,6 +190,9 @@
     </ClCompile>
     <ClCompile Include="HighLightBehavior.cpp">
       <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="TranslateAnimation.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

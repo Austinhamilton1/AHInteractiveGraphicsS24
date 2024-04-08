@@ -54,6 +54,8 @@ public:
 		this->animation = animation;
 	};
 
+	inline std::shared_ptr<IAnimation> GetAnimation() { return animation; }
+
 	void Update(double elapsedSeconds);
 
 	void PointAt(glm::vec3 target);

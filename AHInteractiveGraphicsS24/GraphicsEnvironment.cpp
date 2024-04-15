@@ -8,6 +8,7 @@
 #include "GraphicsObject.h"
 #include "GeometricPlane.h"
 #include "Cloth.h"
+#include "ParticleSystem.h"
 
 GraphicsEnvironment* GraphicsEnvironment::self;
 
@@ -69,6 +70,7 @@ void GraphicsEnvironment::SetupGraphics() {
 	glfwSetFramebufferSizeCallback(window, GraphicsEnvironment::OnWindowSizeChanged);
 	glfwSetCursorPosCallback(window, GraphicsEnvironment::OnMouseMove);
 	glfwSetKeyCallback(window, GraphicsEnvironment::KeyCallback);
+	glfwSetMouseButtonCallback(window, GraphicsEnvironment::OnMousePress);
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGui::StyleColorsDark();
@@ -141,6 +143,14 @@ void GraphicsEnvironment::OnMouseMove(GLFWwindow* window, double mouseX, double 
 
 	self->mouse.normalX = xPercent * 2.0f - 1.0f;
 	self->mouse.normalY = -(yPercent * 2.0f - 1.0f);
+
+	if (self->IsGrabbing()) {
+		int particle = self->GetParticleToMove();
+		if (particle < 0)
+			return;
+		std::shared_ptr<ParticleSystem> cloth = std::dynamic_pointer_cast<ParticleSystem>(self->GetManager()->Get("cloth"));
+		cloth->Move(self->GetParticleToMove(), self->GetMouseRay());
+	}
 }
 
 Ray GraphicsEnvironment::GetMouseRay(const glm::mat4& projection, const glm::mat4& view) {
@@ -194,6 +204,22 @@ void GraphicsEnvironment::KeyCallback(GLFWwindow* window, int key, int scancode,
 		glm::mat4 lookFrame(1.0f);
 		lookFrame = glm::rotate(lookFrame, glm::radians(-90.0f), glm::vec3(0, 1, 0));
 		self->camera.SetLookFrame(lookFrame);
+		return;
+	}
+}
+
+void GraphicsEnvironment::OnMousePress(GLFWwindow* window, int button, int action, int mod) {
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+		std::shared_ptr<ParticleSystem> cloth = std::dynamic_pointer_cast<ParticleSystem>(self->GetManager()->Get("cloth"));
+		int particle = cloth->Grab(self->GetMouseRay());
+		if (particle < 0)
+			return;
+		self->SetGrab(true);
+		self->SetParticleToMove(particle);
+		return;
+	}
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
+		self->SetGrab(false);
 		return;
 	}
 }
@@ -346,6 +372,8 @@ void GraphicsEnvironment::Run3D() {
 		projection = glm::perspective(
 			glm::radians(fieldOfView), aspectRatio, nearPlane, farPlane);
 		GetRenderer("cloth_scene")->SetProjection(projection);
+		
+		mouseRay = GetMouseRay(projection, view);
 
 		manager->Update(elapsedSeconds);
 

@@ -9,12 +9,12 @@ bool BoundingSphere::IsIntersecting(BoundingSphere other) {
 bool BoundingSphere::IsRayIntersecting(Ray ray) {
 	//solve for tc
 	glm::vec3 L = center - ray.startPoint;
-	float tc = glm::dot(L, ray.direction);
-	if (tc < 0.0) return false;
+	float t = glm::dot(L, ray.direction);
+	if (t < 0.0f) return false;
 
-	float length = glm::length(L);
-	float d = (tc * tc) - (length * length);
-	if (d > radius * radius) return false;
+	glm::vec3 p = ray.startPoint + ray.direction * t;
+	if (glm::distance(p, center) > radius)
+		return false;
 
 	return true;
 }

@@ -9,6 +9,10 @@ protected:
 	float distanceFromOrigin;
 
 public:
-	GeometricPlane(glm::vec3 normal, float distanceFromOrigin) : normal(normal), distanceFromOrigin(distanceFromOrigin) {};
+	GeometricPlane() {};
+	void Set(glm::vec3 normal, float distanceFromOrigin) {
+		this->normal = normal;
+		this->distanceFromOrigin = distanceFromOrigin;
+	};
 	float GetIntersectionOffset(Ray ray);
 };

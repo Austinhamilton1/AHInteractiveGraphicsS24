@@ -22,11 +22,13 @@ ParticleSystem::ParticleSystem(glm::vec3 position, unsigned int rows, unsigned i
 	float halfHeight = height / 2;
 	float widthStep = width / ((float)rows);
 	float heightStep = height / ((float)columns);
+	float boundingSphereRadius = glm::max(widthStep, heightStep);
 	for (float y = position.y - halfHeight; y < position.y + halfHeight; y += heightStep) {
 		for (float x = position.x - halfWidth; x < position.x + halfWidth; x += widthStep) {
 			glm::vec3 pos = { x, y, 0.0f };
 			positions.push_back(pos);
 			prevPositions.push_back(pos);
+			boundingSpheres.push_back(BoundingSphere(pos, boundingSphereRadius));
 		}
 	}
 
@@ -39,12 +41,14 @@ ParticleSystem::ParticleSystem(glm::vec3 position, unsigned int rows, unsigned i
 		constraints.push_back(b);
 		constraints.push_back(c);
 	}
+
+	planeOfMovement.Set({0.0f, 0.0f, -1.0f}, 0.0f);
 }
 
 void ParticleSystem::Update(double elapsedTime) {
 	AccumulateForces();
 	Verlet(elapsedTime);
-	SatisfyConstraints(1);
+	SatisfyConstraints(5);
 	if (buffer != nullptr) {
 		buffer->Clear();
 		if (buffer->GetPrimitiveType() == GL_LINES) {
@@ -55,11 +59,24 @@ void ParticleSystem::Update(double elapsedTime) {
 		else {
 			for (int i = 0; i < GetTriangleMeshForRendering().size(); i++) {
 				glm::vec3 pos = GetTriangleMeshForRendering()[i];
-				//glm::vec2 tex = GetTextureMappingForRendering()[i];
 				buffer->AddVertexData(6, pos.x, pos.y, pos.z, color.r, color.g, color.b);
 			}
 		}
 	}
+}
+
+int ParticleSystem::Grab(Ray ray) {
+	for (int i = 0; i < boundingSpheres.size(); i++) {
+		if (boundingSpheres[i].IsRayIntersecting(ray))
+			return i;
+	}
+	return -1;
+}
+
+void ParticleSystem::Move(int particle, Ray ray) {
+	float offset = planeOfMovement.GetIntersectionOffset(ray);
+	glm::vec3 position = ray.startPoint + offset * ray.direction;
+	positions[particle] = position;
 }
 
 void ParticleSystem::Verlet(double elapsedTime) {

@@ -4,6 +4,7 @@
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
 #include "Cloth.h"
+#include "ParticleSystem.h"
 
 class Generate {
 public:
@@ -59,6 +60,11 @@ public:
 	static std::shared_ptr<VertexBuffer> ClothBuffer(
 		std::shared_ptr<Cloth>&,
 		glm::vec3 color = {1.0f, 0.0f, 0.0f}
+	);
+
+	static std::shared_ptr<VertexBuffer> ParticleSystemBuffer(
+		std::shared_ptr<ParticleSystem>& cloth,
+		glm::vec3 color = { 1.0f, 0.0f, 0.0f }
 	);
 
 	static std::shared_ptr<VertexBuffer> NormalCuboid(

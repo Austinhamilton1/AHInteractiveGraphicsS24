@@ -21,6 +21,7 @@
 #include "GraphicsEnvironment.h"
 #include "Generate.h"
 #include "Cloth.h"
+#include "ParticleSystem.h"
 
 static void SetUpScene(std::shared_ptr<Shader>& shader, std::shared_ptr<Scene>& scene) {
 	TextFile vertSource("basic.vert.glsl");
@@ -389,37 +390,30 @@ static void SetUpPCObjectsScene(GraphicsEnvironment& env, std::shared_ptr<Shader
 }
 
 static void SetUpClothScene(GraphicsEnvironment& env, std::shared_ptr<Shader>& shader, std::shared_ptr<Scene>& scene) {
-	TextFile vertSource("texture.vert.glsl");
-	TextFile fragSource("texture.frag.glsl");
+	TextFile vertSource("basic.vert.glsl");
+	TextFile fragSource("basic.frag.glsl");
 	if (!vertSource.ReadIn() || !fragSource.ReadIn()) return;
 	shader = std::make_shared<Shader>(vertSource.GetData(), fragSource.GetData());
 	shader->AddUniform("projection");
 	shader->AddUniform("view");
 	shader->AddUniform("world");
-	shader->AddUniform("texUnit");
+	//shader->AddUniform("texUnit");
 
 	//std::shared_ptr<Texture> clothTexture = std::make_shared<Texture>();
 	//clothTexture->LoadTextureDataFromFile("Cloths/cloth.jpg");
 
-	std::shared_ptr<Cloth> cloth = std::make_shared<Cloth>(glm::vec3(0.0f, 5.0f, 0.0f), 10, 10);
-	cloth->Pin(9, 0);
-	cloth->Pin(9, 1);
-	cloth->Pin(9, 2);
-	cloth->Pin(9, 9);
-	cloth->Pin(9, 8);
-	cloth->Pin(9, 7);
-	cloth->SetPosition({ 0.0f, 5.0f, 0.0f });
+	std::shared_ptr<ParticleSystem> cloth = std::make_shared<ParticleSystem>(glm::vec3(0.0f, 5.0f, 0.0f), 10, 10);
+	cloth->SetPosition({ 0.0f, 0.0f, 0.0f });
 	env.AddObject("cloth", cloth);
-	std::shared_ptr<VertexBuffer> buffer = Generate::ClothLineBuffer(cloth, {1.0f, 0.0f, 0.0f});
+	std::shared_ptr<VertexBuffer> buffer = Generate::ParticleSystemBuffer(cloth, {1.0f, 0.0f, 0.0f});
 	//buffer->SetTexture(clothTexture);
 	//buffer->SelectTexture();
 	cloth->SetVertexBuffer(buffer);
-	cloth->CreateIndexBuffer();
-	Generate::ClothIndexes(cloth->GetIndexBuffer(), cloth);
-	buffer->SetPrimitiveType(GL_LINES);
+	//cloth->CreateIndexBuffer();
+	//Generate::ClothIndexes(cloth->GetIndexBuffer(), cloth);
+	//buffer->SetPrimitiveType(GL_LINES);
 
 	scene = std::make_shared<Scene>();
-	cloth->SetPosition({ 0.0f, 0.0f, 0.0f });
 	scene->AddObject(cloth);
 }
 

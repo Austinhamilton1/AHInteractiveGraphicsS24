@@ -18,18 +18,6 @@ struct Spring {
 	unsigned int j;
 };
 
-struct Triangle {
-	unsigned int a;
-	unsigned int b;
-	unsigned int c;
-	float GetArea(std::vector<glm::vec3>& positions) const {
-		glm::vec3 A = positions[a];
-		glm::vec3 B = positions[b];
-		glm::vec3 C = positions[c];
-		return 0.5f * glm::length(glm::cross(B - A, C - A));
-	};
-};
-
 class Cloth : public GraphicsObject {
 protected:
 	unsigned int rows, columns;

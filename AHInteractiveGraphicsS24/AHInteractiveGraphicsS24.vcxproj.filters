@@ -90,7 +90,10 @@
     <ClInclude Include="Cloth.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="XPBDCloth.h">
+    <ClInclude Include="ParticleSystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BoundingSphere.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -177,6 +180,12 @@
       <Filter>Source Files\src</Filter>
     </ClCompile>
     <ClCompile Include="Cloth.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="BoundingSphere.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="ParticleSystem.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
   </ItemGroup>

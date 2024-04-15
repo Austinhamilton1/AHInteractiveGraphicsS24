@@ -311,11 +311,6 @@ void GraphicsEnvironment::Run3D() {
 	float farPlane = 50.0f;
 	float fieldOfView = 60;
 
-	float stretchConstant = 10.0f;
-	float bendConstant = 10.0f;
-	float shearConstant = 10.0f;
-	float dampingFactor = 0.25f;
-
 	camera.SetPosition(glm::vec3(0.0f, 5.0f, 20.0f));
 	glm::vec3 cameraTarget(0.0f, 0.0f, 0.0f);
 
@@ -324,7 +319,7 @@ void GraphicsEnvironment::Run3D() {
 	glm::mat4 referenceFrame(1.0f);
 	glm::vec3 clearColor = { 0.2f, 0.3f, 0.3f };
 
-	ImGuiIO& io = ImGui::GetIO();
+	//ImGuiIO& io = ImGui::GetIO();
 	Timer timer;
 	double elapsedSeconds;
 	while (!glfwWindowShouldClose(window)) {
@@ -333,14 +328,6 @@ void GraphicsEnvironment::Run3D() {
 		glfwGetWindowSize(window, &width, &height);
 		mouse.windowHeight = height;
 		mouse.windowWidth = width;
-
-		if (manager->Get("cloth") != nullptr) {
-			std::shared_ptr<Cloth> cloth = std::dynamic_pointer_cast<Cloth>(manager->Get("cloth"));
-			cloth->SetBendFactor(bendConstant);
-			cloth->SetShearFactor(shearConstant);
-			cloth->SetStretchFactor(stretchConstant);
-			cloth->SetDampingFactor(dampingFactor);
-		}
 
 		glClearColor(clearColor.r, clearColor.g, clearColor.b, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -364,21 +351,17 @@ void GraphicsEnvironment::Run3D() {
 
 		Render();
 
-		ImGui_ImplOpenGL3_NewFrame();
+		/*ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 		ImGui::Begin("Computing Interactive Graphics");
-		ImGui::Text(GetLog().c_str());
+		ImGui::Text(GetLog().c_str());s
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
 			1000.0f / io.Framerate, io.Framerate);
-		ImGui::SliderFloat("Stretch Constant", &stretchConstant, 1.0f, 30.0f);
-		ImGui::SliderFloat("Bend Constant", &bendConstant, 1.0f, 30.0f);
-		ImGui::SliderFloat("Shear Constant", &shearConstant, 1.0f, 30.0f);
-		ImGui::SliderFloat("Damping Factor", &dampingFactor, 0.0f, 1.0f);
 		ImGui::ColorEdit3("Background color", (float*)&clearColor.r);
 		ImGui::End();
 		ImGui::Render();
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());*/
 		
 
 		glfwSwapBuffers(window);

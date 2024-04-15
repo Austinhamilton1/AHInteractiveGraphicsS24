@@ -167,8 +167,8 @@ void Cloth::Update(double elapsedTime) {
 		else {
 			for (int i = 0; i < GetTriangleMeshForRendering().size(); i++) {
 				glm::vec3 pos = GetTriangleMeshForRendering()[i];
-				glm::vec2 tex = GetTextureMappingForRendering()[i];
-				buffer->AddVertexData(8, pos.x, pos.y, pos.z, color.r, color.g, color.b, tex.s, tex.g);
+				//glm::vec2 tex = GetTextureMappingForRendering()[i];
+				buffer->AddVertexData(6, pos.x, pos.y, pos.z, color.r, color.g, color.b);
 			}
 		}
 	}

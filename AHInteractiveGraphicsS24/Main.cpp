@@ -390,31 +390,50 @@ static void SetUpPCObjectsScene(GraphicsEnvironment& env, std::shared_ptr<Shader
 }
 
 static void SetUpClothScene(GraphicsEnvironment& env, std::shared_ptr<Shader>& shader, std::shared_ptr<Scene>& scene) {
-	TextFile vertSource("basic.vert.glsl");
-	TextFile fragSource("basic.frag.glsl");
+	TextFile vertSource("lighting.vert.glsl");
+	TextFile fragSource("lighting.frag.glsl");
 	if (!vertSource.ReadIn() || !fragSource.ReadIn()) return;
 	shader = std::make_shared<Shader>(vertSource.GetData(), fragSource.GetData());
 	shader->AddUniform("projection");
-	shader->AddUniform("view");
 	shader->AddUniform("world");
-	//shader->AddUniform("texUnit");
-
-	//std::shared_ptr<Texture> clothTexture = std::make_shared<Texture>();
-	//clothTexture->LoadTextureDataFromFile("Cloths/cloth.jpg");
+	shader->AddUniform("view");
+	shader->AddUniform("texUnit");
+	shader->AddUniform("materialAmbientIntensity");
+	shader->AddUniform("materialSpecularIntensity");
+	shader->AddUniform("materialShininess");
+	shader->AddUniform("globalLightPosition");
+	shader->AddUniform("globalLightColor");
+	shader->AddUniform("globalLightIntensity");
+	shader->AddUniform("localLightPosition");
+	shader->AddUniform("localLightColor");
+	shader->AddUniform("localLightIntensity");
+	shader->AddUniform("locoalLightAttenuationCoef");
+	shader->AddUniform("viewPosition");
 
 	std::shared_ptr<ParticleSystem> cloth = std::make_shared<ParticleSystem>(glm::vec3(0.0f, 5.0f, 0.0f), 10, 10);
 	cloth->SetPosition({ 0.0f, 0.0f, 0.0f });
 	env.AddObject("cloth", cloth);
-	std::shared_ptr<VertexBuffer> buffer = Generate::ParticleSystemBuffer(cloth, {1.0f, 0.0f, 0.0f});
-	//buffer->SetTexture(clothTexture);
-	//buffer->SelectTexture();
+	std::shared_ptr<VertexBuffer> buffer = Generate::ParticleSystemBuffer(cloth, {1.0f, 1.0f, 1.0f });
+	std::shared_ptr<Texture> clothTexture = std::make_shared<Texture>();
+	clothTexture->LoadTextureDataFromFile("Cloths/cloth_texture.png");
+	buffer->SetTexture(clothTexture);
+	buffer->SelectTexture();
 	cloth->SetVertexBuffer(buffer);
-	//cloth->CreateIndexBuffer();
-	//Generate::ClothIndexes(cloth->GetIndexBuffer(), cloth);
-	//buffer->SetPrimitiveType(GL_LINES);
+
+	std::shared_ptr<Texture> crateTexture = std::make_shared<Texture>();
+	crateTexture->LoadTextureDataFromFile("Crates/crate_texture.png");
+	std::shared_ptr<GraphicsObject> crate = std::make_shared<GraphicsObject>();
+	env.AddObject("crate", crate);
+	std::shared_ptr<VertexBuffer> buffer2 = Generate::NormalCuboid(10.0f, 5.0f, 5.0f);
+
+	buffer2->SetTexture(crateTexture);
+	buffer->SelectTexture();
+	crate->SetVertexBuffer(buffer2);
+	crate->SetPosition(glm::vec3(-10, 5, 0));
 
 	scene = std::make_shared<Scene>();
 	scene->AddObject(cloth);
+	scene->AddObject(crate);
 }
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,

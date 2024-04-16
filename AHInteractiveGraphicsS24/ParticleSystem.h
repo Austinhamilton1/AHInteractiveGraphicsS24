@@ -24,6 +24,8 @@ private:
 	glm::vec3 color;
 	std::vector<BoundingSphere> boundingSpheres;
 	GeometricPlane planeOfMovement;
+	std::vector<glm::vec2> textureMapping;
+	std::vector<glm::vec3> normals;
 
 public:
 	ParticleSystem(glm::vec3 position = { 0.0f, 0.0f, 0.0f }, unsigned int rows = 50, unsigned int columns = 50, float width = 10, float height = 10);
@@ -38,5 +40,5 @@ protected:
 	void AccumulateForces();
 
 public:
-	std::vector<glm::vec3> GetTriangleMeshForRendering();
+	std::vector<Vertex> GetVertexData();
 };

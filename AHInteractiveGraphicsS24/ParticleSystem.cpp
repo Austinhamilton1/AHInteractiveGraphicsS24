@@ -12,9 +12,25 @@ ParticleSystem::ParticleSystem(glm::vec3 position, unsigned int rows, unsigned i
 			int c1 = a + 1;
 			int c2 = b - 1;
 			Triangle triangle1 = { a, c1, b };
-			Triangle triangle2 = { a, b, c2 };
+			Triangle triangle2 = { a, b, c1 };
+			Triangle triangle3 = { a, b, c2 };
+			Triangle triangle4 = { a, c2, b };
 			triangleMesh.push_back(triangle1);
 			triangleMesh.push_back(triangle2);
+			triangleMesh.push_back(triangle3);
+			triangleMesh.push_back(triangle4);
+			normals.push_back({ 0.0f, 0.0f, 1.0f });
+			normals.push_back({ 0.0f, 0.0f, 1.0f });
+			normals.push_back({ 0.0f, 0.0f, 1.0f });
+			normals.push_back({ 0.0f, 0.0f, -1.0f });
+			normals.push_back({ 0.0f, 0.0f, -1.0f });
+			normals.push_back({ 0.0f, 0.0f, -1.0f });
+			normals.push_back({ 0.0f, 0.0f, 1.0f });
+			normals.push_back({ 0.0f, 0.0f, 1.0f });
+			normals.push_back({ 0.0f, 0.0f, 1.0f });
+			normals.push_back({ 0.0f, 0.0f, -1.0f });
+			normals.push_back({ 0.0f, 0.0f, -1.0f });
+			normals.push_back({ 0.0f, 0.0f, -1.0f });
 		}
 	}
 
@@ -23,16 +39,23 @@ ParticleSystem::ParticleSystem(glm::vec3 position, unsigned int rows, unsigned i
 	float widthStep = width / ((float)rows);
 	float heightStep = height / ((float)columns);
 	float boundingSphereRadius = glm::max(widthStep, heightStep);
-	for (float y = position.y - halfHeight; y < position.y + halfHeight; y += heightStep) {
-		for (float x = position.x - halfWidth; x < position.x + halfWidth; x += widthStep) {
+	float startX = position.x - halfWidth;
+	float stopX = position.x + halfWidth;
+	float startY = position.y - halfHeight;
+	float stopY = position.y + halfHeight;
+	for (float y = startY; y < stopY; y += heightStep) {
+		for (float x = startX; x < stopX; x += widthStep) {
 			glm::vec3 pos = { x, y, 0.0f };
 			positions.push_back(pos);
 			prevPositions.push_back(pos);
 			boundingSpheres.push_back(BoundingSphere(pos, boundingSphereRadius));
+			float xPercent = (x - startX) / width;
+			float yPercent = (x - startY) / height;
+			textureMapping.push_back({ xPercent, yPercent });
 		}
 	}
 
-	for (int i = 0; i < triangleMesh.size(); i++) {
+	for (int i = 0; i < triangleMesh.size(); i += 2) {
 		Triangle t = triangleMesh[i];
 		Constraint a = { t.a, t.b, glm::distance(positions[t.a], positions[t.b]) };
 		Constraint b = { t.a, t.c, glm::distance(positions[t.a], positions[t.c]) };
@@ -48,7 +71,7 @@ ParticleSystem::ParticleSystem(glm::vec3 position, unsigned int rows, unsigned i
 void ParticleSystem::Update(double elapsedTime) {
 	AccumulateForces();
 	Verlet(elapsedTime);
-	SatisfyConstraints(5);
+	SatisfyConstraints(2);
 	if (buffer != nullptr) {
 		buffer->Clear();
 		if (buffer->GetPrimitiveType() == GL_LINES) {
@@ -57,9 +80,10 @@ void ParticleSystem::Update(double elapsedTime) {
 			}
 		}
 		else {
-			for (int i = 0; i < GetTriangleMeshForRendering().size(); i++) {
-				glm::vec3 pos = GetTriangleMeshForRendering()[i];
-				buffer->AddVertexData(6, pos.x, pos.y, pos.z, color.r, color.g, color.b);
+			int size = GetVertexData().size();
+			for (int i = 0; i < size; i++) {
+				Vertex v = GetVertexData()[i];
+				buffer->AddVertexData(11, v.pos.x, v.pos.y, v.pos.z, color.r, color.g, color.b, v.tex.s, v.tex.g, v.normal.x, v.normal.y, v.normal.z);
 			}
 		}
 	}
@@ -114,12 +138,14 @@ void ParticleSystem::AccumulateForces() {
 	}
 }
 
-std::vector<glm::vec3> ParticleSystem::GetTriangleMeshForRendering() {
-	std::vector<glm::vec3> renderPositions;
+std::vector<Vertex> ParticleSystem::GetVertexData() {
+	std::vector<Vertex> vertices;
+	int i = 0;
 	for (const Triangle& triangle : triangleMesh) {
-		renderPositions.push_back(positions[triangle.a]);
-		renderPositions.push_back(positions[triangle.b]);
-		renderPositions.push_back(positions[triangle.c]);
+		vertices.push_back({ positions[triangle.a], textureMapping[triangle.a], normals[i] });
+		vertices.push_back({ positions[triangle.b], textureMapping[triangle.b], normals[i + 1] });
+		vertices.push_back({ positions[triangle.c], textureMapping[triangle.c], normals[i + 2] });
+		i += 3;
 	}
-	return renderPositions;
+	return vertices;
 }

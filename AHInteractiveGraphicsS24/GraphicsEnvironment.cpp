@@ -343,7 +343,7 @@ void GraphicsEnvironment::Run3D() {
 	glm::mat4 view;
 	glm::mat4 projection;
 	glm::mat4 referenceFrame(1.0f);
-	glm::vec3 clearColor = { 0.2f, 0.3f, 0.3f };
+	glm::vec3 clearColor = { 0.0f, 0.0f, 0.0f };
 
 	//ImGuiIO& io = ImGui::GetIO();
 	Timer timer;

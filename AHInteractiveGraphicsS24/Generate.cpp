@@ -215,19 +215,19 @@ std::shared_ptr<VertexBuffer> Generate::ClothBuffer(std::shared_ptr<Cloth>& clot
 	return buffer;
 }
 
-std::shared_ptr<VertexBuffer> Generate::ParticleSystemBuffer(std::shared_ptr<ParticleSystem>& cloth, glm::vec3 color)
-{
+std::shared_ptr<VertexBuffer> Generate::ParticleSystemBuffer(std::shared_ptr<ParticleSystem>& cloth, glm::vec3 color) {
 	cloth->SetColor(color);
-	std::shared_ptr<VertexBuffer> buffer = std::make_shared<VertexBuffer>(6, true);
-	for (int i = 0; i < cloth->GetTriangleMeshForRendering().size(); i++) {
-		glm::vec3 pos = cloth->GetTriangleMeshForRendering()[i];
-		//glm::vec2 tex = cloth->GetTextureMappingForRendering()[i];
-		buffer->AddVertexData(6, pos.x, pos.y, pos.z, color.r, color.g, color.b);
+	std::shared_ptr<VertexBuffer> buffer = std::make_shared<VertexBuffer>(11, true);
+	int size = cloth->GetVertexData().size();
+	for (int i = 0; i < size; i++) {
+		Vertex v = cloth->GetVertexData()[i];
+		buffer->AddVertexData(11, v.pos.x, v.pos.y, v.pos.z, color.r, color.g, color.b, v.tex.s, v.tex.g, v.normal.x, v.normal.y, v.normal.z);
 	}
-	buffer->SetMaxData(buffer->GetNumberOfVertices() * 6 * sizeof(float));
+	buffer->SetMaxData(buffer->GetNumberOfVertices() * 11 * sizeof(float));
 	buffer->AddVertexAttribute("position", 0, 3, 0);
 	buffer->AddVertexAttribute("vertexColor", 1, 3, 3);
-	//buffer->AddVertexAttribute("texCoord", 2, 2, 6);
+	buffer->AddVertexAttribute("texCoord", 2, 2, 6);
+	buffer->AddVertexAttribute("normal", 3, 3, 8);
 	return buffer;
 }
 

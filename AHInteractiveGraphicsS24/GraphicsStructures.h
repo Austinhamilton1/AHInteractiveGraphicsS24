@@ -58,3 +58,9 @@ struct Triangle {
         return 0.5f * glm::length(glm::cross(B - A, C - A));
     };
 };
+
+struct Vertex {
+    glm::vec3 pos;
+    glm::vec2 tex;
+    glm::vec3 normal;
+};

@@ -218,8 +218,8 @@ std::shared_ptr<VertexBuffer> Generate::ClothBuffer(std::shared_ptr<Cloth>& clot
 std::shared_ptr<VertexBuffer> Generate::ParticleSystemBuffer(std::shared_ptr<ParticleSystem>& cloth, glm::vec3 color) {
 	cloth->SetColor(color);
 	std::shared_ptr<VertexBuffer> buffer = std::make_shared<VertexBuffer>(11, true);
-	int size = cloth->GetVertexData().size();
-	for (int i = 0; i < size; i++) {
+	std::vector<Vertex> vertices = cloth->GetVertexData();
+	for (int i = 0; i < vertices.size(); i++) {
 		Vertex v = cloth->GetVertexData()[i];
 		buffer->AddVertexData(11, v.pos.x, v.pos.y, v.pos.z, color.r, color.g, color.b, v.tex.s, v.tex.g, v.normal.x, v.normal.y, v.normal.z);
 	}
@@ -314,4 +314,20 @@ std::shared_ptr<VertexBuffer> Generate::NormalXZPlane(float width, float depth, 
 	buffer->AddVertexAttribute("normal", 3, 3, 9);
 
 	return buffer;
+}
+
+std::shared_ptr<VertexBuffer> Generate::Line(glm::vec3 startPoint, glm::vec3 endPoint, glm::vec3 color) {
+	std::shared_ptr<VertexBuffer> buffer = std::make_shared<VertexBuffer>(6);
+
+	buffer->AddVertexData(6, startPoint.x, startPoint.y, startPoint.z, color.r, color.g, color.b);
+	buffer->AddVertexData(6, endPoint.x, endPoint.y, endPoint.z, color.r, color.g, color.b);
+
+	buffer->AddVertexAttribute("position", 0, 3, 0);
+	buffer->AddVertexAttribute("vertexColor", 1, 4, 3);
+
+	return buffer;
+}
+
+void Generate::LineIndexes(std::shared_ptr<IndexBuffer>& bufferToFill) {
+	bufferToFill->AddIndexData(2, 0, 1);
 }

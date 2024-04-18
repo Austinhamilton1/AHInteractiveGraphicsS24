@@ -20,10 +20,10 @@ void Renderer::RenderObject(GraphicsObject& object)
 {
 	shader->SendMat4Uniform("world", object.GetReferenceFrame());
 
-	//Material material = object.GetMaterial();
-	//shader->SendFloatUniform("materialAmbientIntensity", material.ambientIntensity);
-	//shader->SendFloatUniform("materialSpecularIntensity", material.specularIntensity);
-	//shader->SendFloatUniform("materialShininess", material.shininess);
+	Material material = object.GetMaterial();
+	shader->SendFloatUniform("materialAmbientIntensity", material.ambientIntensity);
+	shader->SendFloatUniform("materialSpecularIntensity", material.specularIntensity);
+	shader->SendFloatUniform("materialShininess", material.shininess);
 
 	auto& buffer = object.GetVertexBuffer();
 	buffer->Select();
@@ -59,7 +59,7 @@ void Renderer::RenderObject(GraphicsObject& object)
 void Renderer::RenderScene(Camera& camera) {
 	glUseProgram(shader->GetShaderProgram());
 	shader->SendMat4Uniform("projection", projection);
-	/*Light globalLight = scene->GetGlobalLight();
+	Light globalLight = scene->GetGlobalLight();
 	Light localLight = scene->GetLocalLight();
 	shader->SendVec3Uniform("globalLightPosition", globalLight.position);
 	shader->SendVec3Uniform("globalLightColor", globalLight.color);
@@ -68,7 +68,7 @@ void Renderer::RenderScene(Camera& camera) {
 	shader->SendVec3Uniform("localLightColor", localLight.color);
 	shader->SendFloatUniform("localLightIntensity", localLight.intensity);
 	shader->SendFloatUniform("localLightAttenuationCoef", localLight.attenuationCoef);
-	shader->SendVec3Uniform("viewPosition", camera.GetPosition());*/
+	shader->SendVec3Uniform("viewPosition", camera.GetPosition());
 	glBindVertexArray(vaoId);
 	shader->SendMat4Uniform("view", view);
 	auto& objects = scene->GetObjects();

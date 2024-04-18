@@ -343,9 +343,8 @@ void GraphicsEnvironment::Run3D() {
 	glm::mat4 view;
 	glm::mat4 projection;
 	glm::mat4 referenceFrame(1.0f);
-	glm::vec3 clearColor = { 0.0f, 0.0f, 0.0f };
+	glm::vec3 clearColor = { 0.53f, 0.81f, 0.92f };
 
-	//ImGuiIO& io = ImGui::GetIO();
 	Timer timer;
 	double elapsedSeconds;
 	while (!glfwWindowShouldClose(window)) {
@@ -362,6 +361,7 @@ void GraphicsEnvironment::Run3D() {
 			camera.SetLookFrame(mouse.spherical.ToMat4());
 		view = camera.LookForward();
 		GetRenderer("cloth_scene")->SetView(view);
+		GetRenderer("clothes_line_scene")->SetView(view);
 
 		if (width >= height) {
 			aspectRatio = width / (height * 1.0f);
@@ -372,33 +372,18 @@ void GraphicsEnvironment::Run3D() {
 		projection = glm::perspective(
 			glm::radians(fieldOfView), aspectRatio, nearPlane, farPlane);
 		GetRenderer("cloth_scene")->SetProjection(projection);
+		GetRenderer("clothes_line_scene")->SetProjection(projection);
 		
 		mouseRay = GetMouseRay(projection, view);
 
 		manager->Update(elapsedSeconds);
 
 		Render();
-
-		/*ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
-		ImGui::NewFrame();
-		ImGui::Begin("Computing Interactive Graphics");
-		ImGui::Text(GetLog().c_str());s
-		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
-			1000.0f / io.Framerate, io.Framerate);
-		ImGui::ColorEdit3("Background color", (float*)&clearColor.r);
-		ImGui::End();
-		ImGui::Render();
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());*/
 		
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
-
-	ImGui_ImplOpenGL3_Shutdown();
-	ImGui_ImplGlfw_Shutdown();
-	ImGui::DestroyContext();
 
 	glfwTerminate();
 }

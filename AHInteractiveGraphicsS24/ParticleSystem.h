@@ -6,6 +6,7 @@
 #include "BoundingSphere.h"
 #include "Ray.h"
 #include "GeometricPlane.h"
+#include "db_perlin.hpp"
 
 struct Constraint {
 	int particleA, particleB;
@@ -38,6 +39,8 @@ protected:
 	void Verlet(double elapsedTime);
 	void SatisfyConstraints(int numIterations);
 	void AccumulateForces();
+	glm::vec3 GenerateWind(float x, float y, float z);
+	void ResetBuffer();
 
 public:
 	std::vector<Vertex> GetVertexData();

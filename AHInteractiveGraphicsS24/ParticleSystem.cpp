@@ -19,18 +19,9 @@ ParticleSystem::ParticleSystem(glm::vec3 position, unsigned int rows, unsigned i
 			triangleMesh.push_back(triangle2);
 			triangleMesh.push_back(triangle3);
 			triangleMesh.push_back(triangle4);
-			normals.push_back({ 0.0f, 0.0f, 1.0f });
-			normals.push_back({ 0.0f, 0.0f, 1.0f });
-			normals.push_back({ 0.0f, 0.0f, 1.0f });
-			normals.push_back({ 0.0f, 0.0f, -1.0f });
-			normals.push_back({ 0.0f, 0.0f, -1.0f });
-			normals.push_back({ 0.0f, 0.0f, -1.0f });
-			normals.push_back({ 0.0f, 0.0f, 1.0f });
-			normals.push_back({ 0.0f, 0.0f, 1.0f });
-			normals.push_back({ 0.0f, 0.0f, 1.0f });
-			normals.push_back({ 0.0f, 0.0f, -1.0f });
-			normals.push_back({ 0.0f, 0.0f, -1.0f });
-			normals.push_back({ 0.0f, 0.0f, -1.0f });
+			for (int k = 0; k < 12; k++) {
+				normals.push_back({ 0.0f, 0.0f, 1.0f });
+			}
 		}
 	}
 
@@ -71,22 +62,8 @@ ParticleSystem::ParticleSystem(glm::vec3 position, unsigned int rows, unsigned i
 void ParticleSystem::Update(double elapsedTime) {
 	AccumulateForces();
 	Verlet(elapsedTime);
-	SatisfyConstraints(2);
-	if (buffer != nullptr) {
-		buffer->Clear();
-		if (buffer->GetPrimitiveType() == GL_LINES) {
-			for (int i = 0; i < rows * columns; i++) {
-				buffer->AddVertexData(6, positions[i].x, positions[i].y, positions[i].z, color.r, color.g, color.b);
-			}
-		}
-		else {
-			int size = GetVertexData().size();
-			for (int i = 0; i < size; i++) {
-				Vertex v = GetVertexData()[i];
-				buffer->AddVertexData(11, v.pos.x, v.pos.y, v.pos.z, color.r, color.g, color.b, v.tex.s, v.tex.g, v.normal.x, v.normal.y, v.normal.z);
-			}
-		}
-	}
+	SatisfyConstraints(3);
+	ResetBuffer();
 }
 
 int ParticleSystem::Grab(Ray ray) {
@@ -117,6 +94,11 @@ void ParticleSystem::Verlet(double elapsedTime) {
 
 void ParticleSystem::SatisfyConstraints(int numIterations) {
 	for (int i = 0; i < numIterations; i++) {
+		for (int i = 0; i < positions.size(); i++) {
+			glm::vec3& particle = positions[i];
+			particle.x = glm::min(glm::max(particle.x, -6.0f), 6.0f);
+			particle.y = glm::max(particle.y, -2.0f);
+		}
 		for (int j = 0; j < constraints.size(); j++) {
 			Constraint& c = constraints[j];
 			glm::vec3& particleA = positions[c.particleA];
@@ -135,6 +117,46 @@ void ParticleSystem::SatisfyConstraints(int numIterations) {
 void ParticleSystem::AccumulateForces() {
 	for (int i = 0; i < numParticles; i++) {
 		forceAccum[i] = gravity;
+		glm::vec3 position = positions[i];
+		glm::vec3 wind = GenerateWind(position.x, position.y, position.z);
+		forceAccum[i] += 15.0f * wind;
+	}
+}
+
+glm::vec3 ParticleSystem::GenerateWind(float x, float y, float z) {
+	float epsilon = 0.0001f;
+	float n1 = db::perlin(x + epsilon, y, z);
+	float n2 = db::perlin(x - epsilon, y, z);
+	float dx = (n1 - n2) / (2 * epsilon);
+
+
+	n1 = db::perlin(x, y + epsilon, z);
+	n2 = db::perlin(x, y - epsilon, z);
+	float dy = (n1 - n2) / (2 * epsilon);
+
+
+	n1 = db::perlin(x, y, z + epsilon);
+	n2 = db::perlin(x, y, z - epsilon);
+	float dz = (n1 - n2) / (2 * epsilon);
+
+	return glm::vec3(dz, dy, -dx);
+}
+
+void ParticleSystem::ResetBuffer() {
+	if (buffer != nullptr) {
+		buffer->Clear();
+		if (buffer->GetPrimitiveType() == GL_LINES) {
+			for (int i = 0; i < rows * columns; i++) {
+				buffer->AddVertexData(6, positions[i].x, positions[i].y, positions[i].z, color.r, color.g, color.b);
+			}
+		}
+		else {
+			std::vector<Vertex> vertices = GetVertexData();
+			for (int i = 0; i < vertices.size(); i++) {
+				Vertex v = GetVertexData()[i];
+				buffer->AddVertexData(11, v.pos.x, v.pos.y, v.pos.z, color.r, color.g, color.b, v.tex.s, v.tex.g, v.normal.x, v.normal.y, v.normal.z);
+			}
+		}
 	}
 }
 

@@ -148,6 +148,7 @@
     <ClInclude Include="BoundingSphere.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Cloth.h" />
+    <ClInclude Include="db_perlin.hpp" />
     <ClInclude Include="Generate.h" />
     <ClInclude Include="GeometricPlane.h" />
     <ClInclude Include="GraphicsEnvironment.h" />
@@ -180,6 +181,7 @@
     <ClCompile Include="BoundingSphere.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Cloth.cpp" />
+    <ClCompile Include="db_perlin.cpp" />
     <ClCompile Include="Generate.cpp" />
     <ClCompile Include="GeometricPlane.cpp" />
     <ClCompile Include="GraphicsEnvironment.cpp" />

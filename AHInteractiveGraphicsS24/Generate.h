@@ -78,4 +78,13 @@ public:
 		glm::vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f },
 		glm::vec2 tex = { 1.0f, 1.0f }
 	);
+
+	static std::shared_ptr<VertexBuffer> Line(
+		glm::vec3 startPoint, glm::vec3 endPoint,
+		glm::vec3 color = { 1.0f, 1.0f, 1.0f }
+	);
+
+	static void LineIndexes(
+		std::shared_ptr<IndexBuffer>& bufferToFill
+	);
 };

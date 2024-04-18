@@ -96,6 +96,9 @@
     <ClInclude Include="BoundingSphere.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="db_perlin.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -186,6 +189,9 @@
       <Filter>Source Files\src</Filter>
     </ClCompile>
     <ClCompile Include="ParticleSystem.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="db_perlin.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
   </ItemGroup>

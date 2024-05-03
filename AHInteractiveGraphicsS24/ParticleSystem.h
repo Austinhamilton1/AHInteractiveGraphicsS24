@@ -27,6 +27,7 @@ private:
 	GeometricPlane planeOfMovement;
 	std::vector<glm::vec2> textureMapping;
 	std::vector<glm::vec3> normals;
+	float windSpeed = 15.0f;
 
 public:
 	ParticleSystem(glm::vec3 position = { 0.0f, 0.0f, 0.0f }, unsigned int rows = 50, unsigned int columns = 50, float width = 10, float height = 10);
@@ -44,4 +45,5 @@ protected:
 
 public:
 	std::vector<Vertex> GetVertexData();
+	void SetWindSpeed(float speed) { windSpeed = speed; }
 };

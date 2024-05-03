@@ -119,7 +119,7 @@ void ParticleSystem::AccumulateForces() {
 		forceAccum[i] = gravity;
 		glm::vec3 position = positions[i];
 		glm::vec3 wind = GenerateWind(position.x, position.y, position.z);
-		forceAccum[i] += 15.0f * wind;
+		forceAccum[i] += wind;
 	}
 }
 
@@ -139,7 +139,17 @@ glm::vec3 ParticleSystem::GenerateWind(float x, float y, float z) {
 	n2 = db::perlin(x, y, z - epsilon);
 	float dz = (n1 - n2) / (2 * epsilon);
 
-	return glm::vec3(dz, dy, -dx);
+	return windSpeed * glm::vec3(dz, dy, -dx);
+}
+
+static std::vector<Vertex> Compare(std::vector<Vertex> a, std::vector<Vertex> b) {
+	std::vector<Vertex> compared(a.size());
+	for (int i = 0; i < a.size(); i++) {
+		Vertex v_a = a[i];
+		Vertex v_b = b[i];
+		Vertex v_c = { v_a.pos - v_b.pos, v_a.tex - v_b.tex, v_a.normal - v_b.normal };
+	}
+	return compared;
 }
 
 void ParticleSystem::ResetBuffer() {
@@ -151,14 +161,16 @@ void ParticleSystem::ResetBuffer() {
 			}
 		}
 		else {
-			std::vector<Vertex> vertices = GetVertexData();
-			for (int i = 0; i < vertices.size(); i++) {
+			int numVertices = 3 * triangleMesh.size();
+			for (int i = 0; i < numVertices; i++) {
 				Vertex v = GetVertexData()[i];
 				buffer->AddVertexData(11, v.pos.x, v.pos.y, v.pos.z, color.r, color.g, color.b, v.tex.s, v.tex.g, v.normal.x, v.normal.y, v.normal.z);
 			}
 		}
 	}
 }
+
+
 
 std::vector<Vertex> ParticleSystem::GetVertexData() {
 	std::vector<Vertex> vertices;

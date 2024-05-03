@@ -21,6 +21,7 @@ protected:
 	Ray mouseRay;
 	bool isGrabbing = false;
 	int particleToMove = -1;
+	bool showMenu = false;
 
 public:
 	GraphicsEnvironment();
@@ -48,6 +49,7 @@ public:
 	static const glm::mat4& CreateViewMatrix(const glm::vec3& position, const glm::vec3& direction, const glm::vec3& up);
 	inline void SetGrab(bool isGrabbing) { this->isGrabbing = isGrabbing; }
 	inline bool IsGrabbing() { return isGrabbing; }
+	inline void ToggleMenu() { showMenu = !showMenu; };
 	inline void SetParticleToMove(int particleToMove) { this->particleToMove = particleToMove; }
 	inline int GetParticleToMove() { return particleToMove; }
 	inline std::shared_ptr<ObjectManager> GetManager() { return manager; }

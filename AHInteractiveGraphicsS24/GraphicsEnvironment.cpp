@@ -171,6 +171,10 @@ Ray GraphicsEnvironment::GetMouseRay(const glm::mat4& projection, const glm::mat
 }
 
 void GraphicsEnvironment::KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	if (key == GLFW_KEY_F1 && action == GLFW_PRESS) {
+		self->ToggleMenu();
+		return;
+	}
 	if (key == GLFW_KEY_F2 && action == GLFW_PRESS) {
 		self->mouse.enabled = !self->mouse.enabled;
 		return;
@@ -337,6 +341,8 @@ void GraphicsEnvironment::Run3D() {
 	float farPlane = 50.0f;
 	float fieldOfView = 60;
 
+	float windSpeed = 15.0f;
+
 	camera.SetPosition(glm::vec3(0.0f, 5.0f, 20.0f));
 	glm::vec3 cameraTarget(0.0f, 0.0f, 0.0f);
 
@@ -347,6 +353,7 @@ void GraphicsEnvironment::Run3D() {
 
 	Timer timer;
 	double elapsedSeconds;
+	ImGuiIO& io = ImGui::GetIO();
 	while (!glfwWindowShouldClose(window)) {
 		elapsedSeconds = timer.GetElapsedTimeInSeconds();
 		ProcessInput(elapsedSeconds);
@@ -376,14 +383,34 @@ void GraphicsEnvironment::Run3D() {
 		
 		mouseRay = GetMouseRay(projection, view);
 
+		std::shared_ptr<ParticleSystem> cloth = std::dynamic_pointer_cast<ParticleSystem>(manager->Get("cloth"));
+		cloth->SetWindSpeed(windSpeed);
+
 		manager->Update(elapsedSeconds);
 
 		Render();
 		
+		if (showMenu) {
+			ImGui_ImplOpenGL3_NewFrame();
+			ImGui_ImplGlfw_NewFrame();
+			ImGui::NewFrame();
+			ImGui::Begin("Computing Interactive Graphics");
+			ImGui::Text(GetLog().c_str());
+			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
+				1000.0f / io.Framerate, io.Framerate);
+			ImGui::SliderFloat("Wind Speed", &windSpeed, 0.0f, 50.0f);
+			ImGui::End();
+			ImGui::Render();
+			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+		}
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
+
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
 
 	glfwTerminate();
 }

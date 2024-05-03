@@ -7,6 +7,8 @@
 #include "RotateAnimation.h"
 #include "GraphicsObject.h"
 #include "GeometricPlane.h"
+#include "Cloth.h"
+#include "ParticleSystem.h"
 
 GraphicsEnvironment* GraphicsEnvironment::self;
 
@@ -68,6 +70,7 @@ void GraphicsEnvironment::SetupGraphics() {
 	glfwSetFramebufferSizeCallback(window, GraphicsEnvironment::OnWindowSizeChanged);
 	glfwSetCursorPosCallback(window, GraphicsEnvironment::OnMouseMove);
 	glfwSetKeyCallback(window, GraphicsEnvironment::KeyCallback);
+	glfwSetMouseButtonCallback(window, GraphicsEnvironment::OnMousePress);
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGui::StyleColorsDark();
@@ -87,7 +90,7 @@ void GraphicsEnvironment::CreateRenderer(const std::string& name, std::shared_pt
 void GraphicsEnvironment::StaticAllocate() {
 	for (auto& it : rendererMap) {
 		std::shared_ptr<Renderer> renderer = it.second;
-		renderer->StaticAllocate(renderer->GetScene()->GetObjects());
+		renderer->Allocate(renderer->GetScene()->GetObjects());
 	}
 }
 
@@ -140,6 +143,14 @@ void GraphicsEnvironment::OnMouseMove(GLFWwindow* window, double mouseX, double 
 
 	self->mouse.normalX = xPercent * 2.0f - 1.0f;
 	self->mouse.normalY = -(yPercent * 2.0f - 1.0f);
+
+	if (self->IsGrabbing()) {
+		int particle = self->GetParticleToMove();
+		if (particle < 0)
+			return;
+		std::shared_ptr<ParticleSystem> cloth = std::dynamic_pointer_cast<ParticleSystem>(self->GetManager()->Get("cloth"));
+		cloth->Move(self->GetParticleToMove(), self->GetMouseRay());
+	}
 }
 
 Ray GraphicsEnvironment::GetMouseRay(const glm::mat4& projection, const glm::mat4& view) {
@@ -160,6 +171,10 @@ Ray GraphicsEnvironment::GetMouseRay(const glm::mat4& projection, const glm::mat
 }
 
 void GraphicsEnvironment::KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	if (key == GLFW_KEY_F1 && action == GLFW_PRESS) {
+		self->ToggleMenu();
+		return;
+	}
 	if (key == GLFW_KEY_F2 && action == GLFW_PRESS) {
 		self->mouse.enabled = !self->mouse.enabled;
 		return;
@@ -193,6 +208,22 @@ void GraphicsEnvironment::KeyCallback(GLFWwindow* window, int key, int scancode,
 		glm::mat4 lookFrame(1.0f);
 		lookFrame = glm::rotate(lookFrame, glm::radians(-90.0f), glm::vec3(0, 1, 0));
 		self->camera.SetLookFrame(lookFrame);
+		return;
+	}
+}
+
+void GraphicsEnvironment::OnMousePress(GLFWwindow* window, int button, int action, int mod) {
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+		std::shared_ptr<ParticleSystem> cloth = std::dynamic_pointer_cast<ParticleSystem>(self->GetManager()->Get("cloth"));
+		int particle = cloth->Grab(self->GetMouseRay());
+		if (particle < 0)
+			return;
+		self->SetGrab(true);
+		self->SetParticleToMove(particle);
+		return;
+	}
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
+		self->SetGrab(false);
 		return;
 	}
 }
@@ -310,12 +341,7 @@ void GraphicsEnvironment::Run3D() {
 	float farPlane = 50.0f;
 	float fieldOfView = 60;
 
-	float localIntensity = 0.5f;
-	float globalIntensity = 0.05f;
-
-	bool gammaCorrection = false;
-
-	float localLightPosition[3] = { 0.0f, 5.0f, 8.0f };
+	float windSpeed = 15.0f;
 
 	camera.SetPosition(glm::vec3(0.0f, 5.0f, 20.0f));
 	glm::vec3 cameraTarget(0.0f, 0.0f, 0.0f);
@@ -323,18 +349,11 @@ void GraphicsEnvironment::Run3D() {
 	glm::mat4 view;
 	glm::mat4 projection;
 	glm::mat4 referenceFrame(1.0f);
-	glm::vec3 clearColor = { 0.2f, 0.3f, 0.3f };
+	glm::vec3 clearColor = { 0.53f, 0.81f, 0.92f };
 
-	ImGuiIO& io = ImGui::GetIO();
 	Timer timer;
 	double elapsedSeconds;
-	std::shared_ptr<RotateAnimation> rotateAnimation =
-		std::make_shared<RotateAnimation>();
-	rotateAnimation->SetObject(manager->Get("crate"));
-	manager->Get("crate")->SetAnimation(rotateAnimation);
-	GeometricPlane plane;
-	plane.Set(glm::vec3(0, 1, 0), 0);
-	manager->SetBehaviorDefaults();
+	ImGuiIO& io = ImGui::GetIO();
 	while (!glfwWindowShouldClose(window)) {
 		elapsedSeconds = timer.GetElapsedTimeInSeconds();
 		ProcessInput(elapsedSeconds);
@@ -345,21 +364,11 @@ void GraphicsEnvironment::Run3D() {
 		glClearColor(clearColor.r, clearColor.g, clearColor.b, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-		/*for (auto& it : GetRenderer("3d_scene")->GetScene()->GetObjects()) {
-			glm::vec4 position = it->GetReferenceFrame()[3];
-			referenceFrame = glm::rotate(glm::mat4(1.0f), glm::radians(cubeYAngle), glm::vec3(0.0f, 1.0f, 0.0f));
-			referenceFrame = glm::rotate(referenceFrame, glm::radians(cubeXAngle), glm::vec3(1.0f, 0.0f, 0.0f));
-			referenceFrame = glm::rotate(referenceFrame, glm::radians(cubeZAngle), glm::vec3(0.0f, 0.0f, 1.0f));
-			it->SetReferenceFrame(referenceFrame);
-			it->SetPosition(position);
-		}*/
-
 		if(mouse.enabled)
 			camera.SetLookFrame(mouse.spherical.ToMat4());
 		view = camera.LookForward();
-		GetRenderer("3d_scene")->SetView(view);
-		GetRenderer("lightbulb")->SetView(view);
-		GetRenderer("circle")->SetView(view);
+		GetRenderer("cloth_scene")->SetView(view);
+		GetRenderer("clothes_line_scene")->SetView(view);
 
 		if (width >= height) {
 			aspectRatio = width / (height * 1.0f);
@@ -369,54 +378,31 @@ void GraphicsEnvironment::Run3D() {
 		}
 		projection = glm::perspective(
 			glm::radians(fieldOfView), aspectRatio, nearPlane, farPlane);
-		GetRenderer("3d_scene")->SetProjection(projection);
-		GetRenderer("lightbulb")->SetProjection(projection);
-		GetRenderer("circle")->SetProjection(projection);
+		GetRenderer("cloth_scene")->SetProjection(projection);
+		GetRenderer("clothes_line_scene")->SetProjection(projection);
+		
+		mouseRay = GetMouseRay(projection, view);
 
-		Light& localLight = GetRenderer("3d_scene")->GetScene()->GetLocalLight();
-		Light& globalLight = GetRenderer("3d_scene")->GetScene()->GetGlobalLight();
+		std::shared_ptr<ParticleSystem> cloth = std::dynamic_pointer_cast<ParticleSystem>(manager->Get("cloth"));
+		cloth->SetWindSpeed(windSpeed);
 
-		localLight.intensity = localIntensity;
-		globalLight.intensity = globalIntensity;
-
-		if (gammaCorrection)
-			glEnable(GL_FRAMEBUFFER_SRGB);
-		else
-			glDisable(GL_FRAMEBUFFER_SRGB);
-
-		std::shared_ptr<GraphicsObject> lightbulb = manager->Get("lightbulb");
-
-		lightbulb->SetPosition(glm::vec3(localLightPosition[0], localLightPosition[1], localLightPosition[2]));
-		localLight.position = glm::vec3(localLightPosition[0], localLightPosition[1], localLightPosition[2]);
-		lightbulb->PointAt(camera.GetPosition());
-		Ray ray = GetMouseRay(projection, view);
-		float offset = plane.GetIntersectionOffset(ray);
-		if (offset > 0) {
-			glm::vec3 point = ray.GetPoint(offset);
-			std::shared_ptr<GraphicsObject> cylinder = manager->Get("cylinder");
-			cylinder->SetPosition(glm::vec3(point.x, cylinder->GetReferenceFrame()[3].y, point.z));
-		}
-		HighlightParams hp = { {}, &ray };
-		manager->Get("cuboid")->SetBehaviorParameters("highlight", hp);
-		manager->Get("crate")->SetBehaviorParameters("highlight", hp);
 		manager->Update(elapsedSeconds);
-		Render();
 
-		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
-		ImGui::NewFrame();
-		ImGui::Begin("Computing Interactive Graphics");
-		ImGui::Text(GetLog().c_str());
-		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
-			1000.0f / io.Framerate, io.Framerate);
-		ImGui::ColorEdit3("Background color", (float*)&clearColor.r);
-		ImGui::SliderFloat("Global Light Intensity", &globalIntensity, 0, 1);
-		ImGui::SliderFloat("Local Light Intensity", &localIntensity, 0, 1);
-		ImGui::Checkbox("Enable Gamma Correction", &gammaCorrection);
-		ImGui::DragFloat3("Local Light Position", localLightPosition, 0.5f, -20.0f, 20.0f);
-		ImGui::End();
-		ImGui::Render();
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+		Render();
+		
+		if (showMenu) {
+			ImGui_ImplOpenGL3_NewFrame();
+			ImGui_ImplGlfw_NewFrame();
+			ImGui::NewFrame();
+			ImGui::Begin("Computing Interactive Graphics");
+			ImGui::Text(GetLog().c_str());
+			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
+				1000.0f / io.Framerate, io.Framerate);
+			ImGui::SliderFloat("Wind Speed", &windSpeed, 0.0f, 50.0f);
+			ImGui::End();
+			ImGui::Render();
+			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+		}
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

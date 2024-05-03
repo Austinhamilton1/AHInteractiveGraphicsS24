@@ -20,7 +20,8 @@
 #include "TextFile.h"
 #include "GraphicsEnvironment.h"
 #include "Generate.h"
-#include "HighLightBehavior.h"
+#include "Cloth.h"
+#include "ParticleSystem.h"
 
 static void SetUpScene(std::shared_ptr<Shader>& shader, std::shared_ptr<Scene>& scene) {
 	TextFile vertSource("basic.vert.glsl");
@@ -79,6 +80,7 @@ static void SetUpTexturedScene(std::shared_ptr<Shader>& textureShader, std::shar
 	textureShader->AddUniform("world");
 	textureShader->AddUniform("view");
 	textureShader->AddUniform("texUnit");
+
 	std::shared_ptr<Texture> tex = std::make_shared<Texture>();
 	tex->SetWidth(4);
 	tex->SetHeight(4);
@@ -138,6 +140,7 @@ static void SetUp3DScene1(GraphicsEnvironment& env, std::shared_ptr<Shader>& sha
 	shader->AddUniform("world");
 	shader->AddUniform("view");
 	shader->AddUniform("texUnit");
+
 	std::shared_ptr<Texture> tex = std::make_shared<Texture>();
 	tex->SetWidth(4);
 	tex->SetHeight(4);
@@ -208,6 +211,7 @@ void SetUp3DScene2(GraphicsEnvironment& env, std::shared_ptr<Shader>& shader, st
 	shader->AddUniform("localLightIntensity");
 	shader->AddUniform("locoalLightAttenuationCoef");
 	shader->AddUniform("viewPosition");
+
 	std::shared_ptr<Texture> tex = std::make_shared<Texture>();
 	tex->SetWidth(4);
 	tex->SetHeight(4);
@@ -267,6 +271,7 @@ static void SetUpLightbulb(GraphicsEnvironment& env, std::shared_ptr<Shader>& sh
 	shader->AddUniform("world");
 	shader->AddUniform("view");
 	shader->AddUniform("texUnit");
+
 	std::shared_ptr<Texture> tex = std::make_shared<Texture>();
 	tex->SetWidth(4);
 	tex->SetHeight(4);
@@ -307,6 +312,7 @@ void SetUp3DScene3(GraphicsEnvironment& env, std::shared_ptr<Shader>& shader, st
 	shader->AddUniform("localLightIntensity");
 	shader->AddUniform("locoalLightAttenuationCoef");
 	shader->AddUniform("viewPosition");
+
 	std::shared_ptr<Texture> tex = std::make_shared<Texture>();
 	tex->SetWidth(4);
 	tex->SetHeight(4);
@@ -397,6 +403,89 @@ static void SetUpPCObjectsScene(GraphicsEnvironment& env, std::shared_ptr<Shader
 	scene->AddObject(pcLinesCylinder);
 }
 
+static void SetUpClothScene(GraphicsEnvironment& env, std::shared_ptr<Shader>& shader, std::shared_ptr<Scene>& scene) {
+	TextFile vertSource("lighting.vert.glsl");
+	TextFile fragSource("lighting.frag.glsl");
+	if (!vertSource.ReadIn() || !fragSource.ReadIn()) return;
+	shader = std::make_shared<Shader>(vertSource.GetData(), fragSource.GetData());
+	shader->AddUniform("projection");
+	shader->AddUniform("world");
+	shader->AddUniform("view");
+	shader->AddUniform("texUnit");
+	shader->AddUniform("materialAmbientIntensity");
+	shader->AddUniform("materialSpecularIntensity");
+	shader->AddUniform("materialShininess");
+	shader->AddUniform("globalLightPosition");
+	shader->AddUniform("globalLightColor");
+	shader->AddUniform("globalLightIntensity");
+	shader->AddUniform("localLightPosition");
+	shader->AddUniform("localLightColor");
+	shader->AddUniform("localLightIntensity");
+	shader->AddUniform("locoalLightAttenuationCoef");
+	shader->AddUniform("viewPosition");
+
+	std::shared_ptr<ParticleSystem> cloth = std::make_shared<ParticleSystem>(glm::vec3(0.0f, 5.0f, 0.0f), 10, 10);
+	cloth->SetPosition({ 0.0f, 0.0f, 0.0f });
+	env.AddObject("cloth", cloth);
+	std::shared_ptr<VertexBuffer> clothBuffer = Generate::ParticleSystemBuffer(cloth, {1.0f, 1.0f, 1.0f });
+	std::shared_ptr<Texture> clothTexture = std::make_shared<Texture>();
+	clothTexture->LoadTextureDataFromFile("Cloths/cloth_texture.png");
+	clothBuffer->SetTexture(clothTexture);
+	clothBuffer->SelectTexture();
+	cloth->SetVertexBuffer(clothBuffer);
+
+	std::shared_ptr<GraphicsObject> ground = std::make_shared<GraphicsObject>();
+	ground->SetPosition({ 0.0f, -2.0f, 0.0f });
+	env.AddObject("ground", ground);
+	std::shared_ptr<VertexBuffer> groundBuffer = Generate::NormalXZPlane(50.0f, 50.0f);
+	std::shared_ptr<Texture> groundTexture = std::make_shared<Texture>();
+	groundTexture->LoadTextureDataFromFile("Floors/grass.jpg");
+	groundBuffer->SetTexture(groundTexture);
+	groundBuffer->SelectTexture();
+	ground->SetVertexBuffer(groundBuffer);
+
+	std::shared_ptr<GraphicsObject> pole1 = std::make_shared<GraphicsObject>();
+	pole1->SetPosition({ -7.0f, 4.0f, 0.0f });
+	env.AddObject("pole1", pole1);
+	std::shared_ptr<GraphicsObject> pole2 = std::make_shared<GraphicsObject>();
+	pole2->SetPosition({ 7.0f, 4.0f, 0.0f });
+	env.AddObject("pole2", pole2);
+	std::shared_ptr<VertexBuffer> poleBuffer = Generate::NormalCuboid(1.0f, 10.0f, 1.0f);
+	std::shared_ptr<Texture> poleTexture = std::make_shared<Texture>();
+	poleTexture->LoadTextureDataFromFile("Wood/wood.jpg");
+	poleBuffer->SetTexture(poleTexture);
+	poleBuffer->SelectTexture();
+	pole1->SetVertexBuffer(poleBuffer);
+	pole2->SetVertexBuffer(poleBuffer);
+
+	scene = std::make_shared<Scene>();
+	scene->AddObject(cloth);
+	scene->AddObject(ground);
+	scene->AddObject(pole1);
+	scene->AddObject(pole2);
+}
+
+static void SetUpClothesLineScene(GraphicsEnvironment& env, std::shared_ptr<Shader>& shader, std::shared_ptr<Scene>& scene) {
+	TextFile vertSource("basic.vert.glsl");
+	TextFile fragSource("basic.frag.glsl");
+	if (!vertSource.ReadIn() || !fragSource.ReadIn()) return;
+	shader = std::make_shared<Shader>(vertSource.GetData(), fragSource.GetData());
+	shader->AddUniform("projection");
+	shader->AddUniform("view");
+	shader->AddUniform("world");
+
+	std::shared_ptr<GraphicsObject> clothesLine = std::make_shared<GraphicsObject>();
+	env.AddObject("clothesLine", clothesLine);
+	std::shared_ptr<VertexBuffer> clothesLineBuffer = Generate::Line({ -7.0f, 9.0f, 0.0f }, { 7.0f, 9.0f, 0.0f }, { 0.0f, 0.0f, 0.0f });
+	clothesLine->SetVertexBuffer(clothesLineBuffer);
+	clothesLine->CreateIndexBuffer();
+	Generate::LineIndexes(clothesLine->GetIndexBuffer());
+	clothesLineBuffer->SetPrimitiveType(GL_LINES);
+
+	scene = std::make_shared<Scene>();
+	scene->AddObject(clothesLine);
+}
+
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	_In_opt_ HINSTANCE hPrevInstance,
 	_In_ LPWSTR    lpCmdLine,
@@ -417,24 +506,17 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 	std::shared_ptr<Shader> shader;
 	std::shared_ptr<Scene> scene;
-	SetUp3DScene3(glfw, shader, scene);
+	SetUpClothScene(glfw, shader, scene);
 
-	std::shared_ptr<Shader> lightbulbShader;
-	std::shared_ptr<Scene> lightbulbScene;
-	SetUpLightbulb(glfw, lightbulbShader, lightbulbScene);
+	std::shared_ptr<Shader> clothesLineShader;
+	std::shared_ptr<Scene> clothesLineScene;
+	SetUpClothesLineScene(glfw, clothesLineShader, clothesLineScene);
 
-	std::shared_ptr<Shader> circleShader;
-	std::shared_ptr<Scene> circleScene;
-	SetUpPCObjectsScene(glfw, circleShader, circleScene);
+	glfw.CreateRenderer("cloth_scene", shader);
+	glfw.GetRenderer("cloth_scene")->SetScene(scene);
 
-	glfw.CreateRenderer("3d_scene", shader);
-	glfw.GetRenderer("3d_scene")->SetScene(scene);
-
-	glfw.CreateRenderer("lightbulb", lightbulbShader);
-	glfw.GetRenderer("lightbulb")->SetScene(lightbulbScene);
-
-	glfw.CreateRenderer("circle", circleShader);
-	glfw.GetRenderer("circle")->SetScene(circleScene);
+	glfw.CreateRenderer("clothes_line_scene", clothesLineShader);
+	glfw.GetRenderer("clothes_line_scene")->SetScene(clothesLineScene);
 
 	glfw.StaticAllocate();
 

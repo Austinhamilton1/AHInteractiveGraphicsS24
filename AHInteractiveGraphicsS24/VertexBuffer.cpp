@@ -2,7 +2,7 @@
 #include <cstdarg>
 
 
-VertexBuffer::VertexBuffer(unsigned int numElementsPerVertex)
+VertexBuffer::VertexBuffer(unsigned int numElementsPerVertex, bool isDynamic)
 {
 	numberOfElementsPerVertex = numElementsPerVertex;
 	numberOfVertices = 0;
@@ -10,6 +10,8 @@ VertexBuffer::VertexBuffer(unsigned int numElementsPerVertex)
 	glGenBuffers(1, &vboId);
 	texture = nullptr;
 	textureUnit = 0;
+	this->isDynamic = isDynamic;
+	maxData = 0;
 }
 
 VertexBuffer::~VertexBuffer()
@@ -43,6 +45,14 @@ void VertexBuffer::StaticAllocate()
 		texture->Allocate();
 }
 
+void VertexBuffer::DynamicAllocate() {
+	glBufferData(
+		GL_ARRAY_BUFFER, maxData, nullptr, GL_DYNAMIC_DRAW
+	);
+	if (texture != nullptr)
+		texture->Allocate();
+}
+
 void VertexBuffer::AddVertexAttribute(
 	const std::string& name, unsigned int index,
 	unsigned int numberOfElements, unsigned int offsetCount)
@@ -67,4 +77,9 @@ void VertexBuffer::SetUpAttributeInterpretration()
 			attr.isNormalized, attr.bytesToNext, attr.byteOffset
 		);
 	}
+}
+
+void VertexBuffer::Clear() {
+	vertexData.clear();
+	numberOfVertices = 0;
 }

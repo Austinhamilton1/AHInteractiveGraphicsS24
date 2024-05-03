@@ -39,7 +39,7 @@ public:
 	inline void SetReferenceFrame(const glm::mat4& referenceFrame) {
 		this->referenceFrame = referenceFrame;
 	}
-	void StaticAllocateBuffers();
+	void AllocateBuffers();
 
 	void AddChild(std::shared_ptr<GraphicsObject> child);
 	inline const std::vector<std::shared_ptr<GraphicsObject>>& GetChildren() const {
@@ -54,7 +54,7 @@ public:
 		this->animation = animation;
 	};
 
-	void Update(double elapsedSeconds);
+	virtual void Update(double elapsedSeconds);
 
 	void PointAt(glm::vec3 target);
 

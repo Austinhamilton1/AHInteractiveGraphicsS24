@@ -3,6 +3,8 @@
 #include <glm/glm.hpp>
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
+#include "Cloth.h"
+#include "ParticleSystem.h"
 
 class Generate {
 public:
@@ -45,6 +47,26 @@ public:
 		int numberOfLineSegments = 36
 	);
 
+	static std::shared_ptr<VertexBuffer> ClothLineBuffer(
+		std::shared_ptr<Cloth>&,
+		glm::vec3 color = {1.0f, 0.0f, 0.0f}
+	);
+
+	static void ClothIndexes(
+		std::shared_ptr<IndexBuffer>& bufferToFill,
+		std::shared_ptr<Cloth>
+	);
+
+	static std::shared_ptr<VertexBuffer> ClothBuffer(
+		std::shared_ptr<Cloth>&,
+		glm::vec3 color = {1.0f, 0.0f, 0.0f}
+	);
+
+	static std::shared_ptr<VertexBuffer> ParticleSystemBuffer(
+		std::shared_ptr<ParticleSystem>& cloth,
+		glm::vec3 color = { 1.0f, 0.0f, 0.0f }
+	);
+
 	static std::shared_ptr<VertexBuffer> NormalCuboid(
 		float width, float height, float depth,
 		glm::vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f },
@@ -55,5 +77,14 @@ public:
 		float width, float depth,
 		glm::vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f },
 		glm::vec2 tex = { 1.0f, 1.0f }
+	);
+
+	static std::shared_ptr<VertexBuffer> Line(
+		glm::vec3 startPoint, glm::vec3 endPoint,
+		glm::vec3 color = { 1.0f, 1.0f, 1.0f }
+	);
+
+	static void LineIndexes(
+		std::shared_ptr<IndexBuffer>& bufferToFill
 	);
 };

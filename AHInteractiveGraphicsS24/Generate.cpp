@@ -166,6 +166,71 @@ void Generate::LineCylinderIndexes(std::shared_ptr<IndexBuffer>& bufferToFill, i
 	}
 }
 
+std::shared_ptr<VertexBuffer> Generate::ClothLineBuffer(std::shared_ptr<Cloth>& cloth, glm::vec3 color) {
+	cloth->SetColor(color);
+	std::shared_ptr<VertexBuffer> buffer = std::make_shared<VertexBuffer>(6, true);
+
+	std::vector<glm::vec3> positions = cloth->GetPositions();
+	for (glm::vec3& position : positions)
+		buffer->AddVertexData(6, position.x, position.y, position.z, color.r, color.g, color.b);
+	buffer->SetMaxData(buffer->GetNumberOfVertices() * 6 * sizeof(float));
+
+	buffer->AddVertexAttribute("position", 0, 3, 0);
+	buffer->AddVertexAttribute("vertexColor", 1, 3, 3);
+
+	return buffer;
+}
+
+void Generate::ClothIndexes(std::shared_ptr<IndexBuffer>& bufferToFill, std::shared_ptr<Cloth> cloth) {
+	unsigned int rows = cloth->GetRows();
+	unsigned int cols = cloth->GetColumns();
+	for (int i = 0; i < rows; i++) {
+		for (int j = 0; j < cols - 1; j++) {
+			int current = i * cols + j;
+			int next = current + 1;
+			bufferToFill->AddIndexData(2, current, next);
+		}
+	}
+	for (int i = 0; i < rows - 1; i++) {
+		for (int j = 0; j < cols; j++) {
+			int current = i * cols + j;
+			int next = current + rows;
+			bufferToFill->AddIndexData(2, current, next);
+		}
+	}
+}
+
+std::shared_ptr<VertexBuffer> Generate::ClothBuffer(std::shared_ptr<Cloth>& cloth, glm::vec3 color) {
+	cloth->SetColor(color);
+	std::shared_ptr<VertexBuffer> buffer = std::make_shared<VertexBuffer>(6, true);
+	for (int i = 0; i < cloth->GetTriangleMeshForRendering().size(); i++) {
+		glm::vec3 pos = cloth->GetTriangleMeshForRendering()[i];
+		//glm::vec2 tex = cloth->GetTextureMappingForRendering()[i];
+		buffer->AddVertexData(6, pos.x, pos.y, pos.z, color.r, color.g, color.b);
+	}
+	buffer->SetMaxData(buffer->GetNumberOfVertices() * 6 * sizeof(float));
+	buffer->AddVertexAttribute("position", 0, 3, 0);
+	buffer->AddVertexAttribute("vertexColor", 1, 3, 3);
+	//buffer->AddVertexAttribute("texCoord", 2, 2, 6);
+	return buffer;
+}
+
+std::shared_ptr<VertexBuffer> Generate::ParticleSystemBuffer(std::shared_ptr<ParticleSystem>& cloth, glm::vec3 color) {
+	cloth->SetColor(color);
+	std::shared_ptr<VertexBuffer> buffer = std::make_shared<VertexBuffer>(11, true);
+	std::vector<Vertex> vertices = cloth->GetVertexData();
+	for (int i = 0; i < vertices.size(); i++) {
+		Vertex v = cloth->GetVertexData()[i];
+		buffer->AddVertexData(11, v.pos.x, v.pos.y, v.pos.z, color.r, color.g, color.b, v.tex.s, v.tex.g, v.normal.x, v.normal.y, v.normal.z);
+	}
+	buffer->SetMaxData(buffer->GetNumberOfVertices() * 11 * sizeof(float));
+	buffer->AddVertexAttribute("position", 0, 3, 0);
+	buffer->AddVertexAttribute("vertexColor", 1, 3, 3);
+	buffer->AddVertexAttribute("texCoord", 2, 2, 6);
+	buffer->AddVertexAttribute("normal", 3, 3, 8);
+	return buffer;
+}
+
 std::shared_ptr<VertexBuffer> Generate::NormalCuboid(float width, float height, float depth, glm::vec4 color, glm::vec2 tex)
 {
 	std::shared_ptr<VertexBuffer> buffer = std::make_shared<VertexBuffer>(12);
@@ -249,4 +314,20 @@ std::shared_ptr<VertexBuffer> Generate::NormalXZPlane(float width, float depth, 
 	buffer->AddVertexAttribute("normal", 3, 3, 9);
 
 	return buffer;
+}
+
+std::shared_ptr<VertexBuffer> Generate::Line(glm::vec3 startPoint, glm::vec3 endPoint, glm::vec3 color) {
+	std::shared_ptr<VertexBuffer> buffer = std::make_shared<VertexBuffer>(6);
+
+	buffer->AddVertexData(6, startPoint.x, startPoint.y, startPoint.z, color.r, color.g, color.b);
+	buffer->AddVertexData(6, endPoint.x, endPoint.y, endPoint.z, color.r, color.g, color.b);
+
+	buffer->AddVertexAttribute("position", 0, 3, 0);
+	buffer->AddVertexAttribute("vertexColor", 1, 4, 3);
+
+	return buffer;
+}
+
+void Generate::LineIndexes(std::shared_ptr<IndexBuffer>& bufferToFill) {
+	bufferToFill->AddIndexData(2, 0, 1);
 }

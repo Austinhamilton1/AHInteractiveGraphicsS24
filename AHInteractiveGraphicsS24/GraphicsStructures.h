@@ -48,8 +48,20 @@ struct Light {
     float attenuationCoef;
 };
 
-struct IParams{};
+struct Triangle {
+    unsigned int a;
+    unsigned int b;
+    unsigned int c;
+    float GetArea(std::vector<glm::vec3>& positions) const {
+        glm::vec3 A = positions[a];
+        glm::vec3 B = positions[b];
+        glm::vec3 C = positions[c];
+        return 0.5f * glm::length(glm::cross(B - A, C - A));
+    };
+};
 
-struct HighlightParams : IParams {
-    Ray* ray;
+struct Vertex {
+    glm::vec3 pos;
+    glm::vec2 tex;
+    glm::vec3 normal;
 };

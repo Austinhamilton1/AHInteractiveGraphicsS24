@@ -87,13 +87,16 @@
     <ClInclude Include="GeometricPlane.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="BoundingBox.h">
+    <ClInclude Include="Cloth.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="IBehavior.h">
+    <ClInclude Include="ParticleSystem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="HighLightBehavior.h">
+    <ClInclude Include="BoundingSphere.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="db_perlin.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -179,13 +182,16 @@
     <ClCompile Include="Ray.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
-    <ClCompile Include="BoundingBox.cpp">
+    <ClCompile Include="Cloth.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
-    <ClCompile Include="IBehavior.cpp">
+    <ClCompile Include="BoundingSphere.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
-    <ClCompile Include="HighLightBehavior.cpp">
+    <ClCompile Include="ParticleSystem.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="db_perlin.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
   </ItemGroup>
